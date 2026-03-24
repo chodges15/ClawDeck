@@ -1,0 +1,80 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh idle",
+            "_source": "clawdeck"
+          }
+        ]
+      },
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh permission",
+            "_source": "clawdeck"
+          }
+        ]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh idle",
+            "_source": "clawdeck"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh pending",
+            "_source": "clawdeck"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh working",
+            "_source": "clawdeck"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh working",
+            "_source": "clawdeck"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/clawdeck/deck-hook.sh idle",
+            "_source": "clawdeck"
+          }
+        ]
+      }
+    ]
+  }
+}
