@@ -58,8 +58,8 @@ Built for the **Stream Deck Original** (15-key, 5x3 grid) on **macOS**.
 ## Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/clawdeck.git
-cd clawdeck
+git clone https://github.com/coryszatkowski/ClawDeck.git
+cd ClawDeck
 bash setup.sh
 ```
 
