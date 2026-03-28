@@ -34,6 +34,8 @@ NAV MODE (tap the active terminal):
 Active terminal is amber; all others are black.
 """
 
+__version__ = "0.2.0"
+
 import time
 import threading
 import subprocess
@@ -341,6 +343,11 @@ class DeckController:
         self._prev_win_positions = {}   # window_id -> (x, y, w, h)
         self._snap_candidates = {}     # window_id -> {pos, polls_stable, win}
         self._controller_win_id = None  # Quartz window ID of the controller terminal
+
+        # Lock for shared state between poll thread and key callback thread.
+        # Protects: active_slot, mode, slot_status, slot_tty, slot_cwd,
+        # blink_on, _controller_win_id, config
+        self._lock = threading.Lock()
 
     # ─── Config ───────────────────────────────────────────────────────
 
@@ -1575,6 +1582,11 @@ end tell
           tap (<0.5s)  → normal behavior (activate / enter nav)
           hold (>=0.5s) → activate window + trigger Whisprflow
         Enter key and Nav mode keys fire immediately on press."""
+        with self._lock:
+            self._handle_key(key, pressed)
+
+    def _handle_key(self, key, pressed):
+        """Process a key event (called under self._lock)."""
         if self.mode == MODE_GRID:
             # Enter key fires immediately on press (no hold behavior)
             if key == ENTER_KEY_INDEX:
@@ -1653,60 +1665,61 @@ end tell
         consecutive_errors = 0
         while self.running:
             try:
-                if self.mode == MODE_GRID:
-                    needs_redraw = False
+                with self._lock:
+                    if self.mode == MODE_GRID:
+                        needs_redraw = False
 
-                    # Periodically refresh TTY map so new/changed terminals get picked up
-                    now_tty = time.time()
-                    if now_tty - self._last_tty_refresh >= TTY_MAP_REFRESH_SEC:
-                        old_cwd = dict(self.slot_cwd)
-                        self._build_tty_map()
-                        self._refresh_controller_win_id()
-                        self._last_tty_refresh = now_tty
-                        if self.slot_cwd != old_cwd:
+                        # Periodically refresh TTY map so new/changed terminals get picked up
+                        now_tty = time.time()
+                        if now_tty - self._last_tty_refresh >= TTY_MAP_REFRESH_SEC:
+                            old_cwd = dict(self.slot_cwd)
+                            self._build_tty_map()
+                            self._refresh_controller_win_id()
+                            self._last_tty_refresh = now_tty
+                            if self.slot_cwd != old_cwd:
+                                self._update_overlay()
+                                needs_redraw = True
+
+                        # Snap-to-grid: detect dragged windows and snap them
+                        if self.config["snap_enabled"] and self._check_snap_to_grid():
+                            needs_redraw = True
+
+                        # Check frontmost window
+                        slot = self._get_frontmost_slot()
+                        if slot != self.active_slot:
+                            self.active_slot = slot  # None when non-terminal is frontmost
                             self._update_overlay()
                             needs_redraw = True
 
-                    # Snap-to-grid: detect dragged windows and snap them
-                    if self.config["snap_enabled"] and self._check_snap_to_grid():
-                        needs_redraw = True
+                        # Fast CWD refresh for active slot only
+                        if self.active_slot is not None and now_tty - self._last_active_cwd_check >= ACTIVE_CWD_REFRESH_SEC:
+                            tty = self.slot_tty.get(self.active_slot)
+                            if tty:
+                                cwd = self._resolve_tty_cwd(tty)
+                                old_cwd = self.slot_cwd.get(self.active_slot)
+                                if cwd and cwd != old_cwd:
+                                    self.slot_cwd[self.active_slot] = cwd
+                                    self._update_overlay()
+                                    needs_redraw = True
+                            self._last_active_cwd_check = now_tty
 
-                    # Check frontmost window
-                    slot = self._get_frontmost_slot()
-                    if slot != self.active_slot:
-                        self.active_slot = slot  # None when non-terminal is frontmost
-                        self._update_overlay()
-                        needs_redraw = True
-
-                    # Fast CWD refresh for active slot only (every 5s)
-                    if self.active_slot is not None and now_tty - self._last_active_cwd_check >= ACTIVE_CWD_REFRESH_SEC:
-                        tty = self.slot_tty.get(self.active_slot)
-                        if tty:
-                            cwd = self._resolve_tty_cwd(tty)
-                            old_cwd = self.slot_cwd.get(self.active_slot)
-                            if cwd and cwd != old_cwd:
-                                self.slot_cwd[self.active_slot] = cwd
-                                self._update_overlay()
-                                needs_redraw = True
-                        self._last_active_cwd_check = now_tty
-
-                    # Read Claude Code status from hook files
-                    old_status = dict(self.slot_status)
-                    self._read_status_files()
-                    if self.slot_status != old_status:
-                        needs_redraw = True
-
-                    # Toggle blink phase for permission (red) slots
-                    now = time.time()
-                    if now - self._last_blink_toggle >= BLINK_INTERVAL:
-                        self.blink_on = not self.blink_on
-                        self._last_blink_toggle = now
-                        # Only redraw for blink if any slot is in permission state
-                        if "permission" in self.slot_status.values():
+                        # Read Claude Code status from hook files
+                        old_status = dict(self.slot_status)
+                        self._read_status_files()
+                        if self.slot_status != old_status:
                             needs_redraw = True
 
-                    if needs_redraw:
-                        self._update_all_buttons()
+                        # Toggle blink phase for permission (red) slots
+                        now = time.time()
+                        if now - self._last_blink_toggle >= BLINK_INTERVAL:
+                            self.blink_on = not self.blink_on
+                            self._last_blink_toggle = now
+                            # Only redraw for blink if any slot is in permission state
+                            if "permission" in self.slot_status.values():
+                                needs_redraw = True
+
+                        if needs_redraw:
+                            self._update_all_buttons()
 
                 consecutive_errors = 0
             except Exception:
@@ -1938,8 +1951,24 @@ end tell
         poller = threading.Thread(target=self._poll_active_loop, daemon=True)
         poller.start()
 
-        print()
-        print("━━━ Stream Deck Controller Running ━━━")
+        # Amber ANSI color: 256-color mode (widely supported)
+        A = "\033[38;5;214m"
+        D = "\033[2m"  # dim
+        R = "\033[0m"
+        print(f"""
+{A}  ██████╗██╗      █████╗ ██╗    ██╗{R}
+{A} ██╔════╝██║     ██╔══██╗██║    ██║{R}
+{A} ██║     ██║     ███████║██║ █╗ ██║{R}
+{A} ██║     ██║     ██╔══██║██║███╗██║{R}
+{A} ╚██████╗███████╗██║  ██║╚███╔███╔╝{R}
+{A}  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝{R}
+{A} ██████╗ ███████╗ ██████╗██╗  ██╗{R}
+{A} ██╔══██╗██╔════╝██╔════╝██║ ██╔╝{R}
+{A} ██║  ██║█████╗  ██║     █████╔╝{R}
+{A} ██║  ██║██╔══╝  ██║     ██╔═██╗{R}
+{A} ██████╔╝███████╗╚██████╗██║  ██╗{R}
+{A} ╚═════╝ ╚══════╝ ╚═════╝╚═╝  ╚═╝{R}  {D}v{__version__}{R}
+""")
         print("  Type 'help' for commands")
         if settings_port:
             print(f"  Settings UI: http://127.0.0.1:{settings_port}")

@@ -178,6 +178,22 @@ Claude Code hooks fire on state changes (tool use, permission prompts, idle) and
 
 Terminal.app and iTerm2 have full TTY mapping (status colors per window). Other apps (Warp, Alacritty, kitty, Hyper) will tile and activate but won't show per-session status colors.
 
+## Contributing
+
+### Branch Workflow
+
+Feature branches off `main` with pull requests. Squash merge to keep history clean.
+
+### Versioning
+
+[Semver](https://semver.org/). Version lives in `main.py` as `__version__`.
+
+### Testing
+
+```bash
+.venv/bin/python -m pytest tests/ -v
+```
+
 ## License
 
 MIT
