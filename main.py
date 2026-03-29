@@ -458,6 +458,16 @@ class DeckController:
                 return session
         return None
 
+    def _normalize_tty_name(self, tty_name):
+        if tty_name is None:
+            return None
+        tty_name = str(tty_name).strip()
+        if not tty_name:
+            return None
+        if tty_name.startswith("/dev/"):
+            tty_name = tty_name[5:]
+        return tty_name or None
+
     def _check_accessibility(self):
         """Check if Accessibility permissions are granted for this terminal app."""
         result = subprocess.run(
@@ -519,12 +529,13 @@ tell application "iTerm2"
     set output to ""
     repeat with w in windows
         repeat with t in tabs of w
-            try
-                set s to current session of t
-                set sessionName to name of s
-                set sessionTTY to tty of s
-                set output to output & sessionName & "|||" & sessionTTY & linefeed
-            end try
+            repeat with s in sessions of t
+                try
+                    set sessionName to name of s
+                    set sessionTTY to tty of s
+                    set output to output & sessionName & "|||" & sessionTTY & linefeed
+                end try
+            end repeat
         end repeat
     end repeat
     return output
@@ -548,9 +559,7 @@ end tell
             if "|||" not in line:
                 continue
             name, tty = line.split("|||", 1)
-            tty = tty.strip()
-            if tty.startswith("/dev/"):
-                tty = tty[5:]
+            tty = self._normalize_tty_name(tty)
             if name.strip() and tty:
                 sessions.append({"name": name.strip(), "tty": tty})
         return sessions
@@ -803,7 +812,7 @@ end tell
                 logger.debug("Skipping status file: %s", e)
                 continue
 
-            tty = data.get("tty", f.name)
+            tty = self._normalize_tty_name(data.get("tty", f.name))
             slot = tty_to_slot.get(tty)
             if slot is None:
                 continue

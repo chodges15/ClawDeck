@@ -86,6 +86,7 @@ def test_get_iterm_sessions_parses_name_and_tty(controller, subprocess_result):
     ]
     args, kwargs = run_mock.call_args
     assert args[0][:2] == ["osascript", "-e"]
+    assert "repeat with s in sessions of t" in args[0][2]
     assert 'tell application "iTerm2"' in args[0][2]
     assert 'sessionName & "|||" & sessionTTY' in args[0][2]
     assert kwargs == {"capture_output": True, "text": True, "timeout": 10}

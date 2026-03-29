@@ -104,6 +104,20 @@ def test_read_status_files_resets_scroll_cache_when_permission_text_changes(cont
     assert 0 not in controller.scroll_text
 
 
+def test_read_status_files_normalizes_dev_tty_paths(controller, status_dir, monkeypatch):
+    controller.slot_tty = {0: "ttys001"}
+    now = 3_500.0
+    monkeypatch.setattr(main.time, "time", lambda: now)
+
+    (status_dir / "permission.json").write_text(
+        json.dumps({"tty": "/dev/ttys001", "state": "working", "ts": now})
+    )
+
+    controller._read_status_files()
+
+    assert controller.slot_status == {0: "working"}
+
+
 def test_read_status_files_keeps_existing_scroll_cache_when_permission_text_unchanged(controller, status_dir, monkeypatch):
     controller.slot_tty = {0: "ttys001"}
     controller.scroll_offsets = {0: 9}
