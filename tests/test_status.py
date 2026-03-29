@@ -1,11 +1,11 @@
-import pytest
 from main import (
-    COLOR_BG_ACTIVE, COLOR_BG_IDLE, COLOR_BG_WORKING, COLOR_BG_PERMISSION,
-    COLOR_BG_DEFAULT, COLOR_FG_DEFAULT, MODE_GRID, MODE_NAV,
+    COLOR_BG_DEFAULT,
+    COLOR_BG_IDLE,
+    COLOR_BG_PERMISSION,
+    COLOR_BG_WORKING,
+    COLOR_FG_DEFAULT,
 )
 
-
-# --- Grid mode slot styling ---
 
 def test_idle_style(controller):
     controller.slot_status = {0: "idle"}
@@ -35,7 +35,6 @@ def test_permission_blink_off(controller):
     controller.active_slot = None
     controller.blink_on = False
     bg, fg, border = controller._get_slot_style(0)
-    # Dimmed — not full permission color
     assert bg != COLOR_BG_PERMISSION
     assert isinstance(bg, tuple)
     assert len(bg) == 3
@@ -46,13 +45,11 @@ def test_active_slot_gets_border(controller):
     controller.active_slot = 0
     bg, fg, border = controller._get_slot_style(0)
     assert border is not None
-    assert isinstance(border, tuple)
-    assert len(border) == 3
 
 
 def test_inactive_slot_no_border(controller):
     controller.slot_status = {0: "idle"}
-    controller.active_slot = 1
+    controller.active_slot = 5
     bg, fg, border = controller._get_slot_style(0)
     assert border is None
 
@@ -61,7 +58,6 @@ def test_no_status_active(controller):
     controller.slot_status = {}
     controller.active_slot = 0
     bg, fg, border = controller._get_slot_style(0)
-    # _color("active", ...) returns an RGB tuple from config
     assert isinstance(bg, tuple)
     assert len(bg) == 3
     assert border is None
@@ -75,7 +71,11 @@ def test_no_status_inactive(controller):
     assert fg == COLOR_FG_DEFAULT
 
 
-# --- Nav mode key styling ---
+def test_info_key_resolves_to_same_label_style(controller):
+    controller.slot_status = {0: "idle"}
+    bg, fg, border = controller._get_slot_style(1)
+    assert bg == COLOR_BG_IDLE
+
 
 def test_nav_style_number_keys(controller):
     for key, expected_label in enumerate(["1", "2", "3", "4", "5"]):
@@ -85,12 +85,10 @@ def test_nav_style_number_keys(controller):
 
 
 def test_nav_style_arrows(controller):
-    arrow_keys = [7, 11, 12, 13]
-    for key in arrow_keys:
+    for key in [7, 11, 12, 13]:
         result = controller._get_nav_style(key)
         assert result is not None
 
 
 def test_nav_style_invalid_key(controller):
-    result = controller._get_nav_style(15)
-    assert result is None
+    assert controller._get_nav_style(15) is None

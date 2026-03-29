@@ -25,7 +25,6 @@ OPTIONS = {
     "packages": ["rumps", "StreamDeck", "PIL"],
     "includes": [
         "main",
-        "overlay",
         "Quartz",
         "CoreFoundation",
         "objc",

@@ -1,0 +1,189 @@
+from unittest.mock import MagicMock, patch
+
+from PIL import Image
+
+import main
+from main import COLOR_BG_DEFAULT, COLOR_BG_NAV_EMPTY, COLOR_BG_PERMISSION
+
+
+def test_button_dimensions_uses_pil_helper_image_size(controller, fake_deck):
+    controller.deck = fake_deck
+
+    with patch("main.PILHelper.create_image", return_value=Image.new("RGB", (96, 64))) as create_mock:
+        assert controller._button_dimensions() == (96, 64)
+
+    create_mock.assert_called_once_with(fake_deck, background=COLOR_BG_DEFAULT)
+
+
+def test_button_dimensions_falls_back_when_pil_helper_fails(controller, fake_deck):
+    controller.deck = fake_deck
+
+    with patch("main.PILHelper.create_image", side_effect=RuntimeError("boom")):
+        assert controller._button_dimensions() == (72, 72)
+
+
+def test_render_button_returns_native_image_and_draws_border(controller, fake_deck):
+    fake_deck.button_size = (72, 72)
+    controller.deck = fake_deck
+
+    image = controller._render_button(
+        "T1",
+        bg=(1, 2, 3),
+        fg=(255, 255, 255),
+        border_color=(255, 0, 0),
+        border_width=4,
+    )
+
+    assert image.size == (72, 72)
+    assert image.getpixel((0, 0)) == (255, 0, 0)
+
+
+def test_render_button_truncates_long_subtitle(controller, fake_deck):
+    controller.deck = fake_deck
+    recorder = MagicMock()
+    recorder.text_calls = []
+
+    def fake_textbbox(_xy, text, font=None):
+        width = sum(4 if ch == "…" else 12 for ch in text)
+        return (0, 0, width, 10)
+
+    def fake_text(_xy, text, font=None, fill=None):
+        recorder.text_calls.append(text)
+
+    recorder.rectangle.return_value = None
+    recorder.textbbox.side_effect = fake_textbbox
+    recorder.text.side_effect = fake_text
+
+    with patch("main.PILHelper.create_image", return_value=Image.new("RGB", (72, 72))):
+        with patch("main.PILHelper.to_native_format", side_effect=lambda deck, image: image):
+            with patch("main.ImageDraw.Draw", return_value=recorder):
+                controller._render_button("", subtitle="this subtitle is intentionally too wide")
+
+    assert len(recorder.text_calls) == 1
+    assert recorder.text_calls[0].endswith("…")
+
+
+def test_render_scroll_strip_uses_permission_palette_and_width(controller, fake_deck):
+    fake_deck.button_size = (10, 10)
+    controller.deck = fake_deck
+
+    strip = controller._render_scroll_strip("Bash: npm test -- --watch=false")
+
+    assert strip.size[1] == 10
+    assert strip.size[0] > 40
+    assert strip.getpixel((0, 0)) == tuple(max(c // 3, 20) for c in COLOR_BG_PERMISSION)
+
+
+def test_render_scroll_button_wraps_between_strip_edges(controller, fake_deck):
+    fake_deck.button_size = (4, 2)
+    controller.deck = fake_deck
+    strip = Image.new("RGB", (10, 2))
+    colors = [
+        (255, 0, 0),
+        (255, 128, 0),
+        (255, 255, 0),
+        (0, 255, 0),
+        (0, 255, 255),
+        (0, 0, 255),
+        (128, 0, 255),
+        (255, 0, 255),
+        (255, 255, 255),
+        (0, 0, 0),
+    ]
+    for x, color in enumerate(colors):
+        for y in range(2):
+            strip.putpixel((x, y), color)
+
+    image = controller._render_scroll_button(strip, offset=8, button_idx=0)
+
+    assert [image.getpixel((x, 0)) for x in range(4)] == [colors[8], colors[9], colors[0], colors[1]]
+
+
+def test_draw_row_mode_leaves_unmapped_info_buttons_dark(controller, fake_deck):
+    controller.deck = fake_deck
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {
+            "label": label,
+            "bg": bg,
+            "subtitle": subtitle,
+            "border": border_color,
+        }
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[0]["label"] == "T1"
+    for key in (1, 2, 3, 4):
+        assert fake_deck.images[key] == {
+            "label": "",
+            "bg": COLOR_BG_DEFAULT,
+            "subtitle": None,
+            "border": None,
+        }
+
+
+def test_draw_row_mode_permission_row_uses_scroll_buttons(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.slot_status = {0: "permission"}
+    controller.scroll_offsets = {0: 3}
+    controller._render_button = MagicMock(return_value="label")
+    controller._ensure_scroll_strip = MagicMock(return_value="strip")
+    controller._render_scroll_button = MagicMock(side_effect=lambda strip, offset, idx: f"scroll-{offset}-{idx}")
+
+    controller._draw_row_mode()
+
+    assert [fake_deck.images[key] for key in (1, 2, 3, 4)] == [
+        "scroll-3-0",
+        "scroll-3-1",
+        "scroll-3-2",
+        "scroll-3-3",
+    ]
+
+
+def test_draw_row_mode_shows_cwd_subtitle_on_first_info_button(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.slot_cwd = {0: "/tmp/project"}
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[1]["subtitle"] == "project"
+    assert fake_deck.images[2]["subtitle"] is None
+    assert fake_deck.images[3]["subtitle"] is None
+    assert fake_deck.images[4]["subtitle"] is None
+
+
+def test_draw_nav_mode_uses_nav_styles_and_active_border(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.active_slot = 10
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {
+            "label": label,
+            "bg": bg,
+            "subtitle": subtitle,
+            "border": border_color,
+        }
+
+    controller._render_button = fake_render
+
+    controller._draw_nav_mode()
+
+    assert fake_deck.images[0]["label"] == "1"
+    assert fake_deck.images[9]["label"] == "BACK"
+    assert fake_deck.images[5] == {
+        "label": "",
+        "bg": COLOR_BG_NAV_EMPTY,
+        "subtitle": None,
+        "border": None,
+    }
+    assert fake_deck.images[10]["label"] == "MIC"
+    assert fake_deck.images[10]["border"] == controller._color("active", main.COLOR_BG_ACTIVE)

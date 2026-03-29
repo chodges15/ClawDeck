@@ -1,19 +1,20 @@
 # ClawDeck
 
-Map an Elgato Stream Deck to a grid of terminal windows running Claude Code sessions. Each button shows the session's state — idle (blue), working (green), needs permission (red blink). Tap to switch windows, hold to dictate.
+Map an Elgato Stream Deck to three Claude Code sessions in iTerm2. Each session owns a full row on the 15-key deck: one label key plus four info keys that show the CWD or a scrolling permission preview.
 
 Built for the **Stream Deck Original** (15-key, 5x3 grid) on **macOS**.
 
 ## What It Does
 
-- Tiles terminal windows into a 5x3 screen grid with multiple layout options
-- Each Stream Deck button reflects Claude Code's live state via hooks
-- Tap a button to activate that terminal window
+- Fixed 3-row layout: one row each for `T1`, `T2`, and `T3`
+- Match rows to iTerm2 sessions by configurable session-name substrings
+- Each row reflects Claude Code's live state via hooks
+- Tap a label key to activate that session
+- Tap a permission row label to approve with `y` without focusing the terminal
 - Hold a button to trigger Whisprflow / dictation
 - Nav Mode for arrow keys and number selection (Claude multi-choice prompts)
-- Screen border overlay highlights the active window
-- Snap-to-grid: drag a terminal and it auto-snaps to the nearest slot
-- Browser-based settings UI for colors, layouts, and behavior
+- Permission prompts scroll their command preview across the row's four info keys
+- Browser-based settings UI for colors, session mapping, and behavior
 - All colors fully customizable
 
 ### Button Colors
@@ -28,46 +29,28 @@ Built for the **Stream Deck Original** (15-key, 5x3 grid) on **macOS**.
 
 All colors are customizable via the settings UI.
 
-### Layouts
-
-Choose a window layout from settings or the `layout` command:
+### Row Layout
 
 ```
-Default (14 terminals)          Quad (11 terminals)
-┌────┬────┬────┬────┬────┐     ┌─────────┬────┬────┬────┐
-│ T1 │ T2 │ T3 │ T4 │ T5 │     │         │ T2 │ T3 │ T4 │
-├────┼────┼────┼────┼────┤     │   T1    ├────┼────┼────┤
-│ T6 │ T7 │ T8 │ T9 │T10│     │         │ T5 │ T6 │ T7 │
-├────┼────┼────┼────┼────┤     ├────┼────┼────┼────┼────┤
-│T11 │T12 │T13 │T14 │ ⏎  │     │ T8 │ T9 │T10 │T11 │ ⏎  │
-└────┴────┴────┴────┴────┘     └────┴────┴────┴────┴────┘
-
-Double Quad (8 terminals)       Wide (9 terminals)
-┌─────────┬─────────┬────┐     ┌──────────────┬────┬────┐
-│         │         │ T3 │     │              │ T2 │ T3 │
-│   T1    │   T2    ├────┤     │     T1       ├────┼────┤
-│         │         │ T4 │     │              │ T4 │ T5 │
-├────┼────┼────┼────┼────┤     ├────┼────┼────┼────┼────┤
-│ T5 │ T6 │ T7 │ T8 │ ⏎  │     │ T6 │ T7 │ T8 │ T9 │ ⏎  │
-└────┴────┴────┴────┴────┘     └────┴────┴────┴────┴────┘
-
-Half (6 terminals)
-┌─────────┬────┬────┬────┐
-│         │ T2 │ T3 │ T4 │
-│         ├────┼────┼────┤
-│   T1    │ T5 │ T6 │ T7 │
-│         ├────┼────┼────┤
-│         │ T8 │ T9 │ ⏎  │
-└─────────┴────┴────┴────┘
+┌─────┬─────┬─────┬─────┬─────┐
+│ T1  │info │info │info │info │
+├─────┼─────┼─────┼─────┼─────┤
+│ T2  │info │info │info │info │
+├─────┼─────┼─────┼─────┼─────┤
+│ T3  │info │info │info │info │
+└─────┴─────┴─────┴─────┴─────┘
 ```
+
+- Left key: session label + status color
+- Right four keys: CWD in normal states, scrolling command preview in permission state
 
 ### Modes
 
-**Grid Mode** (default):
-- Tap → activate window
-- Tap active window → enter Nav Mode
-- Hold any button → activate + trigger MIC (Whisprflow)
-- Bottom-right → Enter key
+**Row Mode** (default):
+- Tap label key → activate session
+- Tap active label key → enter Nav Mode
+- Tap a label in permission state → approve with `y`
+- Hold any label key → activate + trigger MIC (Whisprflow)
 
 **Nav Mode** (tap the active button):
 ```
@@ -82,7 +65,7 @@ Half (6 terminals)
 
 ## Requirements
 
-- macOS (uses Quartz, AppKit, AppleScript for window management)
+- macOS (uses Quartz and AppleScript for session activation and keystroke sending)
 - [Homebrew](https://brew.sh)
 - Elgato Stream Deck Original (15-key)
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
@@ -100,7 +83,7 @@ Setup will:
 2. Create a virtual environment and install dependencies
 3. Offer to install Claude Code hooks into `~/.claude/settings.json`
 
-On first run, you'll be prompted to grant **Accessibility** permissions to your terminal app (required for window management). If you use multiple terminal apps (e.g. Terminal.app for the controller and iTerm2 for Claude sessions), grant Accessibility to **all of them** in System Settings > Privacy & Security > Accessibility.
+On first run, you'll be prompted to grant **Accessibility** permissions to your terminal app (required for session activation and keystroke sending).
 
 ## Run
 
@@ -115,10 +98,10 @@ This starts the controller with a terminal REPL and a browser-based settings UI.
 
 A settings page is available at `http://127.0.0.1:19830` while the controller is running. Type `settings` in the REPL to open it. From here you can configure:
 
-- **Layout** — visual grid selector for all 5 layouts
+- **Session Mapping** — assign `T1`/`T2`/`T3` to iTerm2 session-name substrings
 - **Brightness** — Stream Deck brightness slider
 - **Colors** — pick custom colors for status states, nav keys, and active window
-- **Behavior** — hold threshold, poll interval, snap-to-grid, idle timeout
+- **Behavior** — hold threshold, poll interval, scroll speed, idle timeout
 - **MIC key** — Whisprflow (fn) or custom shell command
 - **Hooks** — one-click Claude Code hook installation
 
@@ -128,12 +111,9 @@ Type these while the controller is running:
 
 | Command | Description |
 |---------|-------------|
-| `tile` | Re-arrange windows into grid |
-| `layout <name>` | Set layout (default, quad, double_quad, wide, half) |
 | `brightness <0-100>` | Set Stream Deck brightness |
 | `hold <seconds>` | Set hold threshold for MIC (default 0.5s) |
 | `poll <seconds>` | Set poll interval (default 0.2s) |
-| `snap <on\|off>` | Toggle snap-to-grid |
 | `mic <fn\|command>` | Set MIC action (`fn` = Whisprflow, or any shell command) |
 | `mic learn` | Press a key to capture it as the MIC action |
 | `settings` | Open settings in browser |
@@ -161,22 +141,18 @@ open dist/ClawDeck.app
 ```
 main.py (DeckController)
   ├── Stream Deck ←→ Key callbacks (press/release/hold)
-  ├── Quartz API  ←→ Window discovery, frontmost detection
-  ├── AppleScript ←→ Window tiling, activation, keystroke sending
+  ├── AppleScript ←→ iTerm2 session discovery + activation
+  ├── Quartz API  ←→ Keystroke generation for MIC learning
   ├── HTTP server ←→ Settings UI (settings.html)
   ├── /tmp/deck-status/*  ← Hook status files (read)
-  └── .deck-overlay.json  → Overlay position + color (write)
-          │                              ▲
-          ▼                              │
-    overlay.py                    deck-hook.sh
-    (screen border)               (called by Claude Code hooks)
+  └── deck-hook.sh   ← Hook status writer (called by Claude Code hooks)
 ```
 
-Claude Code hooks fire on state changes (tool use, permission prompts, idle) and write status files. The controller polls these every 200ms and updates button colors accordingly.
+Claude Code hooks fire on state changes (tool use, permission prompts, idle) and write status files. The controller polls those files, maps them to configured iTerm2 sessions by TTY, and updates the matching row on the deck.
 
-## Terminal Apps Supported
+## Terminal Support
 
-Terminal.app and iTerm2 have full TTY mapping (status colors per window). Other apps (Warp, Alacritty, kitty, Hyper) will tile and activate but won't show per-session status colors.
+The row mapper is built around **iTerm2** session names and TTYs. The controller terminal can be any terminal app, but the three Claude sessions you want on the deck should be iTerm2 sessions with stable names that match your `session_map` settings.
 
 ## Contributing
 
@@ -192,6 +168,16 @@ Feature branches off `main` with pull requests. Squash merge to keep history cle
 
 ```bash
 .venv/bin/python -m pytest tests/ -v
+.venv/bin/python -m pytest --cov=main tests/ -v
+```
+
+Host and rendering boundary contracts now run in the default unit suite with mocked iTerm2, Quartz, and Stream Deck dependencies.
+
+Opt-in macOS smoke tests are available for live iTerm2, TTY, and hardware checks:
+
+```bash
+CLAWDECK_MAC_SMOKE=1 .venv/bin/python -m pytest -m mac_integration tests/test_mac_smoke.py -v
+CLAWDECK_DECK_SMOKE=1 .venv/bin/python -m pytest -m mac_integration tests/test_mac_smoke.py -k streamdeck -v
 ```
 
 ## License

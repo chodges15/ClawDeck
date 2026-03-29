@@ -1,22 +1,19 @@
 """Tests for config defaults and merging."""
-import copy
-import pytest
+
 from main import CONFIG_DEFAULTS
 
-
-# ─── CONFIG_DEFAULTS structure ───────────────────────────────────────────────
 
 def test_defaults_has_required_keys():
     required = [
         "brightness",
         "hold_threshold",
         "poll_interval",
-        "snap_enabled",
-        "layout",
+        "idle_timeout",
         "folder_label",
-        "colors",
         "button_labels",
-        "overlay_label",
+        "scroll_speed",
+        "session_map",
+        "colors",
     ]
     for key in required:
         assert key in CONFIG_DEFAULTS, f"Missing key: {key}"
@@ -29,30 +26,32 @@ def test_defaults_colors_has_all_keys():
         assert key in colors, f"Missing color key: {key}"
 
 
-def test_defaults_layout_valid():
-    assert CONFIG_DEFAULTS["layout"] == "default"
+def test_defaults_session_map_has_all_sessions():
+    assert CONFIG_DEFAULTS["session_map"] == {"T1": "", "T2": "", "T3": ""}
+
+
+def test_defaults_scroll_speed_valid():
+    assert CONFIG_DEFAULTS["scroll_speed"] == 2
 
 
 def test_defaults_folder_label_valid():
     assert CONFIG_DEFAULTS["folder_label"] == "last"
 
 
-# ─── Config merge behavior (via controller.config) ───────────────────────────
-
-def test_config_merge_preserves_user_values(controller):
-    # After construction, override brightness and confirm it sticks
+def test_config_update_preserves_existing_values(controller):
     controller.config["brightness"] = 50
+    controller._apply_config_update({"scroll_speed": 4}, save=False)
     assert controller.config["brightness"] == 50
+    assert controller.config["scroll_speed"] == 4
 
 
-def test_config_merge_adds_missing_keys(controller):
-    # Simulate an old config that was loaded without folder_label.
-    # Remove the key, then re-merge with CONFIG_DEFAULTS to mimic _load_config behavior.
-    controller.config.pop("folder_label", None)
+def test_config_update_merges_session_map(controller):
+    controller._apply_config_update({"session_map": {"T1": "alpha"}}, save=False)
+    assert controller.config["session_map"] == {"T1": "alpha", "T2": "", "T3": ""}
 
-    # Re-apply the same deep-merge logic _load_config uses:
-    # missing top-level keys from defaults get filled in.
-    merged = copy.deepcopy(CONFIG_DEFAULTS)
-    merged.update(controller.config)
-    # folder_label is absent from the "user" config, so the default survives.
-    assert merged.get("folder_label") == CONFIG_DEFAULTS["folder_label"]
+
+def test_normalize_config_adds_missing_nested_keys(controller):
+    raw = {"session_map": {"T2": "beta"}}
+    normalized = controller._normalize_config(raw)
+    assert normalized["session_map"] == {"T1": "", "T2": "beta", "T3": ""}
+    assert normalized["scroll_speed"] == CONFIG_DEFAULTS["scroll_speed"]

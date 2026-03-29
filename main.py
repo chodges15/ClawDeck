@@ -2,75 +2,82 @@
 """
 ClawDeck — Stream Deck controller for Claude Code terminal sessions
 
-Maps a 5x3 (15-key) Elgato Stream Deck to terminal windows arranged in a grid.
+Maps a 5x3 (15-key) Elgato Stream Deck into three horizontal session rows:
 
-GRID MODE (default):
+ROW MODE (default):
   ┌─────┬─────┬─────┬─────┬─────┐
-  │ T1  │ T2  │ T3  │ T4  │ T5  │
+  │ T1  │info │info │info │info │
   ├─────┼─────┼─────┼─────┼─────┤
-  │ T6  │ T7  │ T8  │ T9  │ T10 │
+  │ T2  │info │info │info │info │
   ├─────┼─────┼─────┼─────┼─────┤
-  │ T11 │ T12 │ T13 │ T14 │  ⏎  │
+  │ T3  │info │info │info │info │
   └─────┴─────┴─────┴─────┴─────┘
-  - Tap a terminal button → activate that window (turns amber)
-  - Tap the already-active button → enter Nav Mode
-  - Hold any terminal button (>=0.5s) → activate + trigger Whisprflow (fn)
-  - Bottom-right key always sends Enter to active window
+  - Label key shows session status and focuses the mapped iTerm2 session
+  - Tap the active label key again to enter Nav Mode
+  - If Claude is waiting for permission, tap the label key to approve with `y`
+  - Hold a label key to focus that session and trigger Whisprflow
+  - The four info keys show the CWD, or a scrolling command preview in permission state
 
-NAV MODE (tap the active terminal):
+NAV MODE:
   ┌─────┬─────┬─────┬─────┬─────┐
-  │  1  │  2  │  3  │  4  │  5  │  ← ROYGB number keys
+  │  1  │  2  │  3  │  4  │  5  │
   ├─────┼─────┼─────┼─────┼─────┤
   │     │     │  ↑  │     │BACK │
   ├─────┼─────┼─────┼─────┼─────┤
   │ MIC │  ←  │  ↓  │  →  │  ⏎  │
   └─────┴─────┴─────┴─────┴─────┘
-  - 1-5 keys send number keystrokes (for Claude Code multi-choice)
-  - Arrow cluster for navigation (slate-blue zone)
-  - MIC triggers Whisprflow (fn double-press)
-  - Enter sends Return (stays in Nav Mode for multi-question flows)
-  - BACK returns to Grid Mode
-
-Active terminal is amber; all others are black.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
-import time
-import threading
-import subprocess
-import sys
 import json
-import os
-from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
+import os
+from pathlib import Path
+import subprocess
+import sys
+import threading
+import time
+
 
 def _setup_logging():
     """Configure clawdeck logger with console and file handlers."""
     log_dir = Path.home() / ".clawdeck"
-    log_dir.mkdir(exist_ok=True)
+    try:
+        log_dir.mkdir(exist_ok=True)
+    except OSError:
+        log_dir = Path("/tmp/.clawdeck")
+        log_dir.mkdir(exist_ok=True)
 
     logger = logging.getLogger("clawdeck")
     logger.setLevel(logging.DEBUG)
 
-    # Console: INFO and above
+    if logger.handlers:
+        return logger
+
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     console.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
     logger.addHandler(console)
 
-    # File: DEBUG and above, rotating 1MB x 3 backups
-    file_handler = RotatingFileHandler(
-        log_dir / "clawdeck.log", maxBytes=1_000_000, backupCount=3
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    ))
-    logger.addHandler(file_handler)
+    try:
+        file_handler = RotatingFileHandler(
+            log_dir / "clawdeck.log", maxBytes=1_000_000, backupCount=3
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s [%(levelname)s] %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logger.addHandler(file_handler)
+    except OSError:
+        logger.warning("File logging unavailable; continuing with console logging only")
 
     return logger
+
 
 logger = _setup_logging()
 
@@ -78,142 +85,80 @@ from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from Quartz import (
-    CGWindowListCopyWindowInfo,
-    kCGWindowListOptionOnScreenOnly,
-    kCGWindowListExcludeDesktopElements,
-    kCGNullWindowID,
-    CGGetActiveDisplayList,
-    CGDisplayBounds,
-    CGMainDisplayID,
-    CGEventCreate,
     CGEventCreateKeyboardEvent,
-    CGEventGetLocation,
-    CGEventPost,
-    CGEventGetIntegerValueField,
     CGEventGetFlags,
+    CGEventGetIntegerValueField,
+    CGEventPost,
     CGEventSetFlags,
     CGEventTapCreate,
-    kCGHIDEventTap,
-    kCGSessionEventTap,
-    kCGHeadInsertEventTap,
-    kCGEventKeyDown,
     kCGEventFlagsChanged,
+    kCGEventKeyDown,
+    kCGHIDEventTap,
+    kCGHeadInsertEventTap,
+    kCGSessionEventTap,
 )
 import CoreFoundation
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CONFIGURATION — edit these to match your setup
+# CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════
 
-# All terminal apps to include in the grid (windows from any of these get tiled)
-TERMINAL_APPS = {"Terminal", "iTerm2", "iTerm", "Warp", "Alacritty", "kitty", "Hyper"}
+ITERM_APP_NAME = "iTerm2"
 COLS = 5
 ROWS = 3
-HOLD_THRESHOLD_SEC = 0.5        # hold longer than this → trigger Whisprflow
-FN_KEY_CODE = 63                # macOS fn key code for Whisprflow/dictation
-POLL_INTERVAL = 0.2             # seconds between active-window checks
-SNAP_TOLERANCE = 20             # px — ignore micro-movements smaller than this
-SNAP_SETTLE_POLLS = 5           # window must be stable for this many polls (~1s) before snapping
-STATUS_DIR = "/tmp/deck-status" # where hook scripts write state files
+NUM_SESSIONS = 3
+SESSIONS = ["T1", "T2", "T3"]
+KEYS_PER_ROW = COLS
+TOTAL_KEYS = COLS * ROWS
+HOLD_THRESHOLD_SEC = 0.5
+FN_KEY_CODE = 63
+POLL_INTERVAL = 0.2
+STATUS_DIR = "/tmp/deck-status"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OVERLAY_FILE = os.path.join(SCRIPT_DIR, ".deck-overlay.json")
-STATUS_STALE_SEC = 3600         # ignore idle/working status after 1 hour
-PENDING_INFER_SEC = 2.0         # if "pending" (PreToolUse) sits this long → infer permission
-BLINK_INTERVAL = 0.5            # seconds per blink phase (on/off) for permission
-TTY_MAP_REFRESH_SEC = 30        # rebuild TTY map every N seconds
-ACTIVE_CWD_REFRESH_SEC = 1     # recheck active slot's CWD every N seconds
-BRIGHTNESS = 80                 # Stream Deck brightness (0-100)
+STATUS_STALE_SEC = 3600
+PENDING_INFER_SEC = 2.0
+BLINK_INTERVAL = 0.5
+TTY_MAP_REFRESH_SEC = 30
+ACTIVE_CWD_REFRESH_SEC = 1
+BRIGHTNESS = 80
+DEFAULT_SCROLL_SPEED = 2
 
 # Colors (R, G, B)
-COLOR_BG_DEFAULT    = (0, 0, 0)         # black
-COLOR_FG_DEFAULT    = (255, 255, 255)   # white
-COLOR_BG_ACTIVE     = (255, 176, 0)     # amber
-COLOR_FG_ACTIVE     = (0, 0, 0)         # black
-COLOR_BG_IDLE       = (30, 100, 220)    # blue  — Claude waiting for input
-COLOR_FG_IDLE       = (255, 255, 255)   # white
-COLOR_BG_WORKING    = (30, 160, 70)     # green — Claude actively working
-COLOR_FG_WORKING    = (255, 255, 255)   # white
-COLOR_BG_PERMISSION = (200, 50, 50)     # red   — Claude needs permission
-COLOR_FG_PERMISSION = (255, 255, 255)   # white
-COLOR_BG_ENTER      = (30, 30, 30)      # dark gray
-COLOR_FG_ENTER      = (255, 176, 0)     # amber
-COLOR_FG_NAV_NUM    = (255, 255, 255)   # white
-COLOR_BG_NAV_BACK   = (160, 30, 30)     # saturated red
-COLOR_BG_NAV_ARROW  = (30, 35, 55)      # dark slate-blue — arrow zone
-COLOR_FG_NAV_ARROW  = (180, 200, 255)   # pale blue — arrow glyphs
-COLOR_BG_NAV_ACTION = (230, 230, 230)   # white — MIC / Enter zone
-COLOR_FG_NAV_ACTION = (0, 0, 0)         # black — MIC / Enter glyphs
-COLOR_BG_NAV_EMPTY  = (15, 15, 15)      # near-black
-# ROYGB backgrounds for number keys 1-5
-COLOR_BG_NUM_1 = (180, 40, 40)          # red
-COLOR_BG_NUM_2 = (200, 120, 20)         # orange
-COLOR_BG_NUM_3 = (190, 175, 20)         # yellow
-COLOR_BG_NUM_4 = (40, 150, 60)          # green
-COLOR_BG_NUM_5 = (40, 80, 200)          # blue
+COLOR_BG_DEFAULT = (0, 0, 0)
+COLOR_FG_DEFAULT = (255, 255, 255)
+COLOR_BG_ACTIVE = (255, 176, 0)
+COLOR_FG_ACTIVE = (0, 0, 0)
+COLOR_BG_IDLE = (30, 100, 220)
+COLOR_FG_IDLE = (255, 255, 255)
+COLOR_BG_WORKING = (30, 160, 70)
+COLOR_FG_WORKING = (255, 255, 255)
+COLOR_BG_PERMISSION = (200, 50, 50)
+COLOR_FG_PERMISSION = (255, 255, 255)
+COLOR_BG_NAV_BACK = (160, 30, 30)
+COLOR_BG_NAV_ARROW = (30, 35, 55)
+COLOR_FG_NAV_ARROW = (180, 200, 255)
+COLOR_BG_NAV_ACTION = (230, 230, 230)
+COLOR_FG_NAV_ACTION = (0, 0, 0)
+COLOR_BG_NAV_EMPTY = (15, 15, 15)
+COLOR_BG_NUM_1 = (180, 40, 40)
+COLOR_BG_NUM_2 = (200, 120, 20)
+COLOR_BG_NUM_3 = (190, 175, 20)
+COLOR_BG_NUM_4 = (40, 150, 60)
+COLOR_BG_NUM_5 = (40, 80, 200)
 
-
-# ═══════════════════════════════════════════════════════════════════════
-# CONSTANTS (derived)
-# ═══════════════════════════════════════════════════════════════════════
-
-TOTAL_KEYS = COLS * ROWS            # 15
-GRID_SLOTS = TOTAL_KEYS             # 15 — all slots tile on screen
-DECK_TERMINAL_SLOTS = TOTAL_KEYS - 1  # 14 — slots with Stream Deck buttons
-ENTER_KEY_INDEX = TOTAL_KEYS - 1    # 14 (bottom-right key = Enter)
-
-MODE_GRID = "grid"
+MODE_ROW = "row"
+MODE_GRID = MODE_ROW  # Backward-compatible alias for older callers/tests.
 MODE_NAV = "nav"
 
-# ═══════════════════════════════════════════════════════════════════════
-# LAYOUTS — each maps key index to a terminal name
-# Multiple keys with the same name merge into one window.
-# Key 14 is always ENTER.
-# ═══════════════════════════════════════════════════════════════════════
-
-LAYOUTS = {
-    "default": [
-        "T1",  "T2",  "T3",  "T4",  "T5",
-        "T6",  "T7",  "T8",  "T9",  "T10",
-        "T11", "T12", "T13", "T14", "ENTER",
-    ],
-    # Quad: T1 = 2x2 top-left (keys 0,1,5,6)
-    "quad": [
-        "T1",  "T1",  "T2",  "T3",  "T4",
-        "T1",  "T1",  "T5",  "T6",  "T7",
-        "T8",  "T9",  "T10", "T11", "ENTER",
-    ],
-    # Double Quad: T1 = 2x2 top-left, T2 = 2x2 top-middle (keys 2,3,7,8)
-    "double_quad": [
-        "T1",  "T1",  "T2",  "T2",  "T3",
-        "T1",  "T1",  "T2",  "T2",  "T4",
-        "T5",  "T6",  "T7",  "T8",  "ENTER",
-    ],
-    # Wide: T1 = 3x2 top-left (keys 0,1,2,5,6,7)
-    "wide": [
-        "T1",  "T1",  "T1",  "T2",  "T3",
-        "T1",  "T1",  "T1",  "T4",  "T5",
-        "T6",  "T7",  "T8",  "T9",  "ENTER",
-    ],
-    # Half: T1 = 2x3 left side (keys 0,1,5,6,10,11)
-    "half": [
-        "T1",  "T1",  "T2",  "T3",  "T4",
-        "T1",  "T1",  "T5",  "T6",  "T7",
-        "T1",  "T1",  "T8",  "T9",  "ENTER",
-    ],
-}
-
-LAYOUT_NAMES = list(LAYOUTS.keys())
-
-# Nav mode layout: key_index -> (action_type, value)
 NAV_KEYMAP = {
-    0:  ("num",   "1"),
-    1:  ("num",   "2"),
-    2:  ("num",   "3"),
-    3:  ("num",   "4"),
-    4:  ("num",   "5"),
-    9:  ("back",  None),
-    7:  ("arrow", "Up"),
+    0: ("num", "1"),
+    1: ("num", "2"),
+    2: ("num", "3"),
+    3: ("num", "4"),
+    4: ("num", "5"),
+    7: ("arrow", "Up"),
+    9: ("back", None),
     10: ("whisprflow", None),
     11: ("arrow", "Left"),
     12: ("arrow", "Down"),
@@ -221,43 +166,91 @@ NAV_KEYMAP = {
     14: ("enter", None),
 }
 
-# Nav mode button labels and styles
 NAV_BUTTON_STYLES = {
-    0:  {"label": "1",    "bg": COLOR_BG_NUM_1,      "fg": COLOR_FG_NAV_NUM},
-    1:  {"label": "2",    "bg": COLOR_BG_NUM_2,      "fg": COLOR_FG_NAV_NUM},
-    2:  {"label": "3",    "bg": COLOR_BG_NUM_3,      "fg": COLOR_FG_NAV_NUM},
-    3:  {"label": "4",    "bg": COLOR_BG_NUM_4,      "fg": COLOR_FG_NAV_NUM},
-    4:  {"label": "5",    "bg": COLOR_BG_NUM_5,      "fg": COLOR_FG_NAV_NUM},
-    9:  {"label": "BACK", "bg": COLOR_BG_NAV_BACK,   "fg": COLOR_FG_DEFAULT},
-    7:  {"label": "↑",    "bg": COLOR_BG_NAV_ARROW,  "fg": COLOR_FG_NAV_ARROW},
-    10: {"label": "MIC",  "bg": COLOR_BG_NAV_ACTION, "fg": COLOR_FG_NAV_ACTION},
-    11: {"label": "←",    "bg": COLOR_BG_NAV_ARROW,  "fg": COLOR_FG_NAV_ARROW},
-    12: {"label": "↓",    "bg": COLOR_BG_NAV_ARROW,  "fg": COLOR_FG_NAV_ARROW},
-    13: {"label": "→",    "bg": COLOR_BG_NAV_ARROW,  "fg": COLOR_FG_NAV_ARROW},
-    14: {"label": "⏎",    "bg": COLOR_BG_NAV_ACTION, "fg": COLOR_FG_NAV_ACTION},
+    0: {"label": "1", "bg": COLOR_BG_NUM_1, "fg": COLOR_FG_DEFAULT},
+    1: {"label": "2", "bg": COLOR_BG_NUM_2, "fg": COLOR_FG_DEFAULT},
+    2: {"label": "3", "bg": COLOR_BG_NUM_3, "fg": COLOR_FG_DEFAULT},
+    3: {"label": "4", "bg": COLOR_BG_NUM_4, "fg": COLOR_FG_DEFAULT},
+    4: {"label": "5", "bg": COLOR_BG_NUM_5, "fg": COLOR_FG_DEFAULT},
+    7: {"label": "↑", "bg": COLOR_BG_NAV_ARROW, "fg": COLOR_FG_NAV_ARROW},
+    9: {"label": "BACK", "bg": COLOR_BG_NAV_BACK, "fg": COLOR_FG_DEFAULT},
+    10: {"label": "MIC", "bg": COLOR_BG_NAV_ACTION, "fg": COLOR_FG_NAV_ACTION},
+    11: {"label": "←", "bg": COLOR_BG_NAV_ARROW, "fg": COLOR_FG_NAV_ARROW},
+    12: {"label": "↓", "bg": COLOR_BG_NAV_ARROW, "fg": COLOR_FG_NAV_ARROW},
+    13: {"label": "→", "bg": COLOR_BG_NAV_ARROW, "fg": COLOR_FG_NAV_ARROW},
+    14: {"label": "⏎", "bg": COLOR_BG_NAV_ACTION, "fg": COLOR_FG_NAV_ACTION},
 }
 
-# macOS key codes for arrow keys
 ARROW_KEY_CODES = {"Up": 126, "Down": 125, "Left": 123, "Right": 124}
 
-# CGEvent field IDs and modifier masks
 kCGKeyboardEventKeycode = 9
-MOD_SHIFT   = 0x20000
+MOD_SHIFT = 0x20000
 MOD_CONTROL = 0x40000
-MOD_OPTION  = 0x80000
+MOD_OPTION = 0x80000
 MOD_COMMAND = 0x100000
-MOD_FN      = 0x800000
+MOD_FN = 0x800000
 
-# Common macOS key codes → names (for display only)
 KEY_NAMES = {
-    0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X", 8: "C", 9: "V",
-    11: "B", 12: "Q", 13: "W", 14: "E", 15: "R", 16: "Y", 17: "T", 18: "1", 19: "2",
-    20: "3", 21: "4", 22: "6", 23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8",
-    29: "0", 31: "O", 32: "U", 34: "I", 35: "P", 37: "L", 38: "J", 40: "K", 45: "N",
-    46: "M", 36: "Return", 48: "Tab", 49: "Space", 51: "Delete", 53: "Escape",
-    63: "fn", 122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6",
-    98: "F7", 100: "F8", 101: "F9", 109: "F10", 103: "F11", 111: "F12",
-    123: "Left", 124: "Right", 125: "Down", 126: "Up",
+    0: "A",
+    1: "S",
+    2: "D",
+    3: "F",
+    4: "H",
+    5: "G",
+    6: "Z",
+    7: "X",
+    8: "C",
+    9: "V",
+    11: "B",
+    12: "Q",
+    13: "W",
+    14: "E",
+    15: "R",
+    16: "Y",
+    17: "T",
+    18: "1",
+    19: "2",
+    20: "3",
+    21: "4",
+    22: "6",
+    23: "5",
+    24: "=",
+    25: "9",
+    26: "7",
+    27: "-",
+    28: "8",
+    29: "0",
+    31: "O",
+    32: "U",
+    34: "I",
+    35: "P",
+    37: "L",
+    38: "J",
+    40: "K",
+    45: "N",
+    46: "M",
+    36: "Return",
+    48: "Tab",
+    49: "Space",
+    51: "Delete",
+    53: "Escape",
+    63: "fn",
+    122: "F1",
+    120: "F2",
+    99: "F3",
+    118: "F4",
+    96: "F5",
+    97: "F6",
+    98: "F7",
+    100: "F8",
+    101: "F9",
+    109: "F10",
+    103: "F11",
+    111: "F12",
+    123: "Left",
+    124: "Right",
+    125: "Down",
+    126: "Up",
 }
 
 
@@ -274,47 +267,44 @@ def _format_keystroke(key_code, flags):
         parts.append("⌘")
     if flags & MOD_FN:
         parts.append("fn+")
-    name = KEY_NAMES.get(key_code, f"key{key_code}")
-    parts.append(name)
+    parts.append(KEY_NAMES.get(key_code, f"key{key_code}"))
     return "".join(parts)
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# CONTROLLER
-# ═══════════════════════════════════════════════════════════════════════
+CONFIG_FILE = os.path.join(SCRIPT_DIR, "config.json")
 
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 def _rgb_to_hex(rgb):
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
+
 def _hex_to_rgb(h):
     h = h.lstrip("#")
-    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
 
 CONFIG_DEFAULTS = {
     "brightness": BRIGHTNESS,
     "hold_threshold": HOLD_THRESHOLD_SEC,
     "poll_interval": POLL_INTERVAL,
-    "snap_enabled": True,
-    "mic_command": "fn",   # "fn" = double fn press, anything else = shell command
-    "idle_timeout": STATUS_STALE_SEC,  # seconds before idle/working status resets to black
-    "layout": "default",
-    "folder_label": "last",  # "last", "two", "full", "off"
-    "button_labels": True,   # show folder name on Stream Deck buttons
-    "overlay_label": True,   # show folder name bar on screen overlay
+    "mic_command": "fn",
+    "idle_timeout": STATUS_STALE_SEC,
+    "folder_label": "last",
+    "button_labels": True,
+    "scroll_speed": DEFAULT_SCROLL_SPEED,
+    "session_map": {session: "" for session in SESSIONS},
     "colors": {
-        "active":     _rgb_to_hex(COLOR_BG_ACTIVE),
-        "idle":       _rgb_to_hex(COLOR_BG_IDLE),
-        "working":    _rgb_to_hex(COLOR_BG_WORKING),
+        "active": _rgb_to_hex(COLOR_BG_ACTIVE),
+        "idle": _rgb_to_hex(COLOR_BG_IDLE),
+        "working": _rgb_to_hex(COLOR_BG_WORKING),
         "permission": _rgb_to_hex(COLOR_BG_PERMISSION),
-        "num_1":      _rgb_to_hex(COLOR_BG_NUM_1),
-        "num_2":      _rgb_to_hex(COLOR_BG_NUM_2),
-        "num_3":      _rgb_to_hex(COLOR_BG_NUM_3),
-        "num_4":      _rgb_to_hex(COLOR_BG_NUM_4),
-        "num_5":      _rgb_to_hex(COLOR_BG_NUM_5),
-        "arrows":     _rgb_to_hex(COLOR_BG_NAV_ARROW),
-        "mic_enter":  _rgb_to_hex(COLOR_BG_NAV_ACTION),
+        "num_1": _rgb_to_hex(COLOR_BG_NUM_1),
+        "num_2": _rgb_to_hex(COLOR_BG_NUM_2),
+        "num_3": _rgb_to_hex(COLOR_BG_NUM_3),
+        "num_4": _rgb_to_hex(COLOR_BG_NUM_4),
+        "num_5": _rgb_to_hex(COLOR_BG_NUM_5),
+        "arrows": _rgb_to_hex(COLOR_BG_NAV_ARROW),
+        "mic_enter": _rgb_to_hex(COLOR_BG_NAV_ACTION),
         "label_text": "#000000",
     },
 }
@@ -323,51 +313,61 @@ CONFIG_DEFAULTS = {
 class DeckController:
     def __init__(self):
         self.config = self._load_config()
-        self.mode = MODE_GRID
-        self.active_slot = None       # which grid slot (0-13) is focused
-        self._key_press_time = {}     # key_index -> press timestamp (for hold detection)
+        self.mode = MODE_ROW
+        self.active_slot = None  # label key (0, 5, 10)
+        self._key_press_time = {}
         self.deck = None
         self.running = False
-        self.screen = self._get_screen_bounds()
+        self._settings_port = None
         self._init_fonts()
-        self.slot_tty = {}            # slot -> tty name (e.g. "ttys003")
-        self.slot_cwd = {}            # slot -> cwd path string
-        self.slot_status = {}         # slot -> "idle"|"working"|"permission"|None
-        self.blink_on = True          # toggles every BLINK_INTERVAL for red blink
+        self.slot_tty = {}
+        self.slot_cwd = {}
+        self.slot_status = {}
+        self.slot_tool_info = {}
+        self.scroll_offsets = {}
+        self.scroll_images = {}
+        self.scroll_text = {}
+        self.blink_on = True
         self._last_blink_toggle = time.time()
-        self.overlay_proc = None      # subprocess for screen border overlay
-        self._last_tty_refresh = 0    # force immediate TTY map build
-        self._last_active_cwd_check = 0  # fast CWD refresh for active slot
-
-        # Snap-to-grid: track window positions to detect drag-and-drop
-        self._prev_win_positions = {}   # window_id -> (x, y, w, h)
-        self._snap_candidates = {}     # window_id -> {pos, polls_stable, win}
-        self._controller_win_id = None  # Quartz window ID of the controller terminal
-
-        # Lock for shared state between poll thread and key callback thread.
-        # Protects: active_slot, mode, slot_status, slot_tty, slot_cwd,
-        # blink_on, _controller_win_id, config
+        self._last_tty_refresh = 0
+        self._last_active_cwd_check = 0
         self._lock = threading.Lock()
 
     # ─── Config ───────────────────────────────────────────────────────
 
-    def _load_config(self):
-        """Load config from config.json, filling in defaults for missing keys.
-        Merges nested dicts (like colors) so new defaults get picked up."""
+    def _normalize_config(self, raw):
         config = dict(CONFIG_DEFAULTS)
-        # Deep copy default colors
-        config["colors"] = dict(CONFIG_DEFAULTS.get("colors", {}))
+        config["colors"] = dict(CONFIG_DEFAULTS["colors"])
+        config["session_map"] = dict(CONFIG_DEFAULTS["session_map"])
+
+        if not isinstance(raw, dict):
+            return config
+
+        saved = dict(raw)
+        colors = saved.pop("colors", None)
+        session_map = saved.pop("session_map", None)
+        config.update(saved)
+
+        if isinstance(colors, dict):
+            config["colors"].update(colors)
+
+        if isinstance(session_map, dict):
+            for session in SESSIONS:
+                value = session_map.get(session)
+                if isinstance(value, str):
+                    config["session_map"][session] = value
+
+        return config
+
+    def _load_config(self):
+        """Load config from config.json, filling in defaults for missing keys."""
         try:
             with open(CONFIG_FILE) as f:
                 saved = json.load(f)
-            # Merge colors: defaults first, then saved overrides
-            if "colors" in saved:
-                config["colors"].update(saved["colors"])
-                del saved["colors"]
-            config.update(saved)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logger.debug("Config load skipped: %s", e)
-        return config
+            saved = {}
+        return self._normalize_config(saved)
 
     def _save_config(self):
         """Persist current config to config.json."""
@@ -380,8 +380,30 @@ class DeckController:
         except Exception as e:
             logger.error("Config save failed: %s", e)
 
+    def _apply_config_update(self, updates, save=True):
+        merged = dict(self.config)
+        merged["colors"] = dict(self.config.get("colors", {}))
+        merged["session_map"] = dict(self.config.get("session_map", {}))
+
+        if isinstance(updates, dict):
+            colors = updates.get("colors")
+            session_map = updates.get("session_map")
+            for key, value in updates.items():
+                if key in ("colors", "session_map"):
+                    continue
+                merged[key] = value
+            if isinstance(colors, dict):
+                merged["colors"].update(colors)
+            if isinstance(session_map, dict):
+                for session in SESSIONS:
+                    if session in session_map:
+                        merged["session_map"][session] = session_map[session]
+
+        self.config = self._normalize_config(merged)
+        if save:
+            self._save_config()
+
     def _color(self, key, fallback):
-        """Get a color from config, falling back to the constant."""
         colors = self.config.get("colors", {})
         h = colors.get(key)
         if h:
@@ -391,74 +413,51 @@ class DeckController:
                 logger.debug("Invalid color hex for '%s': %s", key, e)
         return fallback
 
-    # ─── Layout ──────────────────────────────────────────────────────
+    # ─── Session Mapping ─────────────────────────────────────────────
 
-    def _get_layout(self):
-        """Get the current layout mapping (list of 15 terminal names)."""
-        name = self.config.get("layout", "default")
-        return LAYOUTS.get(name, LAYOUTS["default"])
+    def _key_to_session(self, key):
+        if 0 <= key < TOTAL_KEYS:
+            return SESSIONS[key // KEYS_PER_ROW]
+        return None
 
-    def _get_terminal_names(self):
-        """Get unique terminal names in the current layout (excluding ENTER), in order."""
-        seen = set()
-        names = []
-        for name in self._get_layout():
-            if name != "ENTER" and name not in seen:
-                seen.add(name)
-                names.append(name)
-        return names
-
-    def _get_terminal_slots(self):
-        """Map each terminal name to its list of key indices."""
-        layout = self._get_layout()
-        groups = {}
-        for i, name in enumerate(layout):
-            if name == "ENTER":
-                continue
-            groups.setdefault(name, []).append(i)
-        return groups
-
-    def _get_terminal_rect(self, terminal_name):
-        """Get the screen rectangle for a terminal (merged from all its slots)."""
-        layout = self._get_layout()
-        slots = [i for i, name in enumerate(layout) if name == terminal_name]
-        if not slots:
+    def _session_label_key(self, session):
+        if session not in SESSIONS:
             return None
-        # Find bounding box of all slots
-        rects = [self._grid_rect(s) for s in slots]
-        x = min(r["x"] for r in rects)
-        y = min(r["y"] for r in rects)
-        x2 = max(r["x"] + r["w"] for r in rects)
-        y2 = max(r["y"] + r["h"] for r in rects)
-        return {"x": x, "y": y, "w": x2 - x, "h": y2 - y,
-                "cx": (x + x2) // 2, "cy": (y + y2) // 2}
+        return SESSIONS.index(session) * KEYS_PER_ROW
 
-    def _key_to_terminal(self, key):
-        """Get the terminal name for a key index."""
-        layout = self._get_layout()
-        if 0 <= key < len(layout):
-            name = layout[key]
-            return name if name != "ENTER" else None
+    def _key_is_label(self, key):
+        return 0 <= key < TOTAL_KEYS and key % KEYS_PER_ROW == 0
+
+    def _key_info_index(self, key):
+        if not 0 <= key < TOTAL_KEYS:
+            return -1
+        col = key % KEYS_PER_ROW
+        return col - 1 if col else -1
+
+    def _session_pattern(self, session):
+        return str(self.config.get("session_map", {}).get(session, "")).strip()
+
+    def _match_session_name(self, session_name):
+        if not session_name:
+            return None
+        lowered = session_name.lower()
+        for session in SESSIONS:
+            pattern = self._session_pattern(session)
+            if pattern and pattern.lower() in lowered:
+                return session
         return None
-
-    def _terminal_to_active_slot(self, terminal_name):
-        """Get the 'primary' key index for a terminal (first key in its group).
-        Used as the active_slot identifier."""
-        layout = self._get_layout()
-        for i, name in enumerate(layout):
-            if name == terminal_name:
-                return i
-        return None
-
-    # ─── Setup ───────────────────────────────────────────────────────
 
     def _check_accessibility(self):
-        """Check if Accessibility permissions are granted for this terminal app.
-        If not, opens System Settings to the right pane and waits for the user."""
-        # Try a simple System Events query — this will fail without Accessibility
+        """Check if Accessibility permissions are granted for this terminal app."""
         result = subprocess.run(
-            ["osascript", "-e", 'tell application "System Events" to get name of first process'],
-            capture_output=True, text=True, timeout=5,
+            [
+                "osascript",
+                "-e",
+                'tell application "System Events" to get name of first process',
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.returncode == 0:
             return True
@@ -466,19 +465,20 @@ class DeckController:
         print()
         print("━━━ Accessibility Permission Required ━━━")
         print("  Your terminal app needs Accessibility access for")
-        print("  window management and keystroke sending.")
+        print("  session activation and keystroke sending.")
         print()
         print("  Opening System Settings now...")
         print("  → Toggle ON your terminal app, then press Enter here.")
         print()
 
-        # Open System Settings to the Accessibility pane
         subprocess.run(
-            ["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"],
+            [
+                "open",
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            ],
             capture_output=True,
         )
 
-        # Wait for the user to grant permission and press Enter
         while True:
             try:
                 input("  Press Enter after granting permission...")
@@ -486,113 +486,473 @@ class DeckController:
                 sys.exit(1)
 
             result = subprocess.run(
-                ["osascript", "-e", 'tell application "System Events" to get name of first process'],
-                capture_output=True, text=True, timeout=5,
+                [
+                    "osascript",
+                    "-e",
+                    'tell application "System Events" to get name of first process',
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if result.returncode == 0:
                 print("  Accessibility permission granted!")
                 return True
             print("  Not yet — make sure your terminal app is toggled ON, then try again.")
 
-    def _get_terminal_windows(self):
-        """Get all on-screen windows from any recognized terminal app via Quartz.
-        Returns a list of dicts with owner, pid, id, and bounds."""
-        windows = CGWindowListCopyWindowInfo(
-            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
-            kCGNullWindowID,
-        )
-        results = []
-        for w in windows:
-            owner = w.get("kCGWindowOwnerName", "")
-            if owner not in TERMINAL_APPS:
+    def _get_iterm_sessions(self):
+        """Return iTerm2 sessions as [{'name': str, 'tty': str}, ...]."""
+        script = r'''
+tell application "iTerm2"
+    if not running then return ""
+    set output to ""
+    repeat with w in windows
+        repeat with t in tabs of w
+            try
+                set s to current session of t
+                set sessionName to name of s
+                set sessionTTY to tty of s
+                set output to output & sessionName & "|||" & sessionTTY & linefeed
+            end try
+        end repeat
+    end repeat
+    return output
+end tell
+'''
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0 or not result.stdout.strip():
+                return []
+        except Exception:
+            logger.warning("Failed to read iTerm2 sessions", exc_info=True)
+            return []
+
+        sessions = []
+        for line in result.stdout.splitlines():
+            if "|||" not in line:
                 continue
-            bounds = w.get("kCGWindowBounds", {})
-            # Skip tiny windows (toolbars, popovers, etc.)
-            if bounds.get("Width", 0) < 100 or bounds.get("Height", 0) < 100:
+            name, tty = line.split("|||", 1)
+            tty = tty.strip()
+            if tty.startswith("/dev/"):
+                tty = tty[5:]
+            if name.strip() and tty:
+                sessions.append({"name": name.strip(), "tty": tty})
+        return sessions
+
+    def _build_tty_map(self):
+        tty_map = {}
+        cwd_map = {}
+        sessions = self._get_iterm_sessions()
+
+        for session in SESSIONS:
+            pattern = self._session_pattern(session)
+            if not pattern:
                 continue
-            results.append({
-                "owner": owner,
-                "pid": w.get("kCGWindowOwnerPID"),
-                "id": w.get("kCGWindowNumber"),
-                "x": int(bounds.get("X", 0)),
-                "y": int(bounds.get("Y", 0)),
-                "w": int(bounds.get("Width", 0)),
-                "h": int(bounds.get("Height", 0)),
-            })
-        return results
-
-    def _get_screen_bounds(self):
-        """Get the usable frame of the screen where the user's mouse cursor is.
-        Uses Quartz CGDisplay (top-left coords natively) to avoid NSScreen
-        coordinate conversion issues."""
-        # Get mouse position in Quartz coords (top-left origin)
-        event = CGEventCreate(None)
-        mouse = CGEventGetLocation(event) if event else None
-
-        # Get all active displays
-        err, display_ids, count = CGGetActiveDisplayList(16, None, None)
-
-        # Find the display containing the mouse cursor
-        target_display = CGMainDisplayID()  # fallback
-        if mouse and display_ids:
-            for did in display_ids[:count]:
-                b = CGDisplayBounds(did)
-                if (b.origin.x <= mouse.x <= b.origin.x + b.size.width
-                        and b.origin.y <= mouse.y <= b.origin.y + b.size.height):
-                    target_display = did
+            for info in sessions:
+                if pattern.lower() in info["name"].lower():
+                    label_key = self._session_label_key(session)
+                    tty_map[label_key] = info["tty"]
+                    cwd = self._resolve_tty_cwd(info["tty"])
+                    if cwd:
+                        cwd_map[label_key] = cwd
                     break
 
-        disp_bounds = CGDisplayBounds(target_display)
-
-        # Detect menu bar and dock by scanning Quartz window list directly.
-        # The menu bar is a window owned by "Window Server" at layer 25.
-        # The Dock is owned by "Dock". Both are real windows we can measure.
-        menu_bar_h = 0
-        dock_h = 0
-        all_windows = CGWindowListCopyWindowInfo(
-            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
-            kCGNullWindowID,
+        logger.debug("TTY map: %s", tty_map)
+        logger.debug(
+            "CWD map: %s",
+            {slot: Path(cwd).name for slot, cwd in cwd_map.items()},
         )
-        dx, dw = int(disp_bounds.origin.x), int(disp_bounds.size.width)
-        dy, dh = int(disp_bounds.origin.y), int(disp_bounds.size.height)
 
-        for w in all_windows or []:
-            owner = w.get("kCGWindowOwnerName", "")
-            layer = w.get("kCGWindowLayer", 0)
-            b = w.get("kCGWindowBounds", {})
-            bx, by = int(b.get("X", 0)), int(b.get("Y", 0))
-            bw, bh = int(b.get("Width", 0)), int(b.get("Height", 0))
+        self.slot_tty = tty_map
+        self.slot_cwd = cwd_map
 
-            # Menu bar: layer 25, spans full display width, at the top
-            if layer == 25 and abs(bx - dx) < 5 and abs(bw - dw) < 5:
-                if abs(by - dy) < 5:
-                    menu_bar_h = max(menu_bar_h, bh)
+    def _resolve_tty_cwd(self, tty_name):
+        """Get the working directory of the most recent shell on a TTY."""
+        try:
+            result = subprocess.run(
+                ["ps", "-t", tty_name, "-o", "pid=,comm="],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode != 0:
+                return None
 
-            # Dock: owned by "Dock", on this display
-            if owner == "Dock" and bx >= dx and bx + bw <= dx + dw + 5:
-                # Bottom dock: sits at the bottom of the display
-                if by + bh >= dy + dh - 5 and bh < dh / 2:
-                    dock_h = max(dock_h, bh)
+            shell_pid = None
+            for line in result.stdout.strip().split("\n"):
+                parts = line.strip().split(None, 1)
+                if len(parts) == 2:
+                    comm = parts[1].strip().lstrip("-")
+                    if comm in ("zsh", "bash", "fish"):
+                        shell_pid = parts[0].strip()
+            if not shell_pid:
+                return None
 
-        if menu_bar_h == 0:
-            menu_bar_h = 25  # safe fallback
+            result = subprocess.run(
+                ["lsof", "-a", "-p", shell_pid, "-d", "cwd", "-Fn"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode != 0:
+                return None
 
-        x = int(disp_bounds.origin.x)
-        y = int(disp_bounds.origin.y) + menu_bar_h
-        w = int(disp_bounds.size.width)
-        h = int(disp_bounds.size.height) - menu_bar_h - dock_h
+            for line in result.stdout.strip().split("\n"):
+                if line.startswith("n"):
+                    return line[1:]
+            return None
+        except Exception:
+            logger.debug("Failed to resolve CWD for %s", tty_name, exc_info=True)
+            return None
 
-        logger.info("Display at (%d, %d), %dx%d, menu_bar=%dpx, dock=%dpx", x, y, w, h, menu_bar_h, dock_h)
-        return {"x": x, "y": y, "w": w, "h": h}
+    def _format_cwd(self, path):
+        if not path:
+            return None
+
+        mode = self.config.get("folder_label", "last")
+        if mode == "off":
+            return None
+
+        home = str(Path.home())
+        tilde_path = "~" + path[len(home):] if path.startswith(home) else path
+
+        if mode == "full":
+            return tilde_path
+        if mode == "two":
+            parts = Path(path).parts
+            return "/".join(parts[-2:]) if len(parts) >= 2 else parts[-1]
+        return Path(path).name
+
+    def _frontmost_session_name(self):
+        script = r'''
+tell application "iTerm2"
+    if not running then return ""
+    try
+        return name of current session of current tab of current window
+    on error
+        return ""
+    end try
+end tell
+'''
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode != 0:
+                return None
+            name = result.stdout.strip()
+            return name or None
+        except Exception:
+            logger.debug("Failed to detect frontmost iTerm2 session", exc_info=True)
+            return None
+
+    def _activate_session(self, session):
+        pattern = self._session_pattern(session)
+        if not pattern:
+            return False
+
+        pattern_json = json.dumps(pattern)
+        script = f'''
+set matchPattern to {pattern_json}
+tell application "{ITERM_APP_NAME}"
+    if not running then return "not-running"
+    repeat with w in windows
+        repeat with t in tabs of w
+            try
+                set s to current session of t
+                set sessionName to name of s
+                ignoring case
+                    if sessionName contains matchPattern then
+                        set current tab of w to t
+                        set index of w to 1
+                        activate
+                        return "ok"
+                    end if
+                end ignoring
+            end try
+        end repeat
+    end repeat
+    return "no-match"
+end tell
+'''
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        except Exception:
+            logger.warning("Failed to activate session %s", session, exc_info=True)
+            return False
+
+        ok = result.returncode == 0 and result.stdout.strip() == "ok"
+        if ok:
+            self.active_slot = self._session_label_key(session)
+        return ok
+
+    def _get_frontmost_slot(self):
+        session_name = self._frontmost_session_name()
+        session = self._match_session_name(session_name)
+        return self._session_label_key(session) if session else None
+
+    # ─── Claude Status (Hook Integration) ────────────────────────────
+
+    def _normalize_tool_info(self, raw):
+        if raw in (None, "", {}):
+            return None
+
+        if isinstance(raw, str):
+            stripped = raw.strip()
+            if not stripped:
+                return None
+            try:
+                raw = json.loads(stripped)
+            except json.JSONDecodeError:
+                return {"tool_name": "Tool", "tool_input": stripped}
+
+        if not isinstance(raw, dict):
+            return {"tool_name": "Tool", "tool_input": raw}
+
+        tool_name = raw.get("tool_name") or raw.get("tool") or raw.get("name")
+        tool_input = raw.get("tool_input")
+
+        if tool_input is None:
+            if "input" in raw:
+                tool_input = raw["input"]
+            elif "toolInput" in raw:
+                tool_input = raw["toolInput"]
+
+        if tool_name is None and isinstance(raw.get("tool"), dict):
+            tool_name = raw["tool"].get("name")
+
+        if tool_name is None and len(raw) == 1:
+            only_key, only_value = next(iter(raw.items()))
+            tool_name = str(only_key)
+            tool_input = only_value
+
+        if tool_name is None:
+            tool_name = "Tool"
+
+        if tool_input is None:
+            tool_input = {
+                key: value
+                for key, value in raw.items()
+                if key not in {"tool_name", "tool", "name", "input", "tool_input", "toolInput"}
+            } or None
+
+        return {"tool_name": str(tool_name), "tool_input": tool_input}
+
+    def _read_status_files(self):
+        status_dir = Path(STATUS_DIR)
+        if not status_dir.exists():
+            return
+
+        now = time.time()
+        idle_timeout = self.config.get("idle_timeout", STATUS_STALE_SEC)
+        tty_to_slot = {tty: slot for slot, tty in self.slot_tty.items()}
+        new_status = {}
+        new_tool_info = {}
+
+        for f in status_dir.iterdir():
+            if f.name.startswith("."):
+                continue
+            try:
+                data = json.loads(f.read_text())
+            except (json.JSONDecodeError, IOError) as e:
+                logger.debug("Skipping status file: %s", e)
+                continue
+
+            tty = data.get("tty", f.name)
+            slot = tty_to_slot.get(tty)
+            if slot is None:
+                continue
+
+            ts = data.get("ts", 0)
+            state = data.get("state", "unknown")
+            age = now - ts
+
+            if idle_timeout and state not in ("permission", "pending") and age > idle_timeout:
+                continue
+
+            if state == "pending":
+                state = "permission" if age >= PENDING_INFER_SEC else "working"
+
+            new_status[slot] = state
+
+            tool_info = self._normalize_tool_info(data.get("tool_input"))
+            if tool_info is not None:
+                new_tool_info[slot] = tool_info
+
+        permission_slots = {slot for slot, state in new_status.items() if state == "permission"}
+        stale_slots = set(self.scroll_offsets) | set(self.scroll_images) | set(self.scroll_text)
+        stale_slots -= permission_slots
+        for slot in stale_slots:
+            self.scroll_offsets.pop(slot, None)
+            self.scroll_images.pop(slot, None)
+            self.scroll_text.pop(slot, None)
+
+        for slot in permission_slots:
+            text = self._format_tool_command(new_tool_info.get(slot))
+            if self.scroll_text.get(slot) != text:
+                self.scroll_offsets[slot] = 0
+                self.scroll_images.pop(slot, None)
+                self.scroll_text.pop(slot, None)
+
+        self.slot_status = new_status
+        self.slot_tool_info = new_tool_info
+
+    def _approve_permission(self, session):
+        label_key = self._session_label_key(session)
+        tty_name = self.slot_tty.get(label_key)
+        if not tty_name:
+            return False
+
+        tty_path = f"/dev/{tty_name}"
+        fd = None
+        try:
+            fd = os.open(tty_path, os.O_WRONLY | os.O_NOCTTY)
+            os.write(fd, b"y\n")
+            return True
+        except OSError:
+            logger.warning("Failed to approve permission for %s via %s", session, tty_path, exc_info=True)
+            return False
+        finally:
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    logger.debug("Failed to close TTY %s", tty_path, exc_info=True)
+
+    # ─── Keystroke Sending ───────────────────────────────────────────
+
+    def _trigger_mic(self):
+        mic_cmd = self.config.get("mic_command", "fn")
+
+        if mic_cmd == "fn":
+            for _ in range(2):
+                event_down = CGEventCreateKeyboardEvent(None, FN_KEY_CODE, True)
+                CGEventPost(kCGHIDEventTap, event_down)
+                event_up = CGEventCreateKeyboardEvent(None, FN_KEY_CODE, False)
+                CGEventPost(kCGHIDEventTap, event_up)
+                time.sleep(0.05)
+            return
+
+        if isinstance(mic_cmd, dict) and mic_cmd.get("type") == "keystroke":
+            key_code = mic_cmd["key_code"]
+            flags = mic_cmd.get("flags", 0)
+            event_down = CGEventCreateKeyboardEvent(None, key_code, True)
+            if flags:
+                CGEventSetFlags(event_down, flags)
+            CGEventPost(kCGHIDEventTap, event_down)
+            event_up = CGEventCreateKeyboardEvent(None, key_code, False)
+            if flags:
+                CGEventSetFlags(event_up, flags)
+            CGEventPost(kCGHIDEventTap, event_up)
+            return
+
+        if isinstance(mic_cmd, str):
+            try:
+                subprocess.Popen(
+                    mic_cmd,
+                    shell=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                logger.warning("MIC command failed", exc_info=True)
+
+    def _learn_keystroke(self):
+        captured = {}
+
+        def callback(proxy, event_type, event, refcon):
+            if event_type == kCGEventKeyDown:
+                captured["key_code"] = CGEventGetIntegerValueField(
+                    event, kCGKeyboardEventKeycode
+                )
+                captured["flags"] = CGEventGetFlags(event)
+                CoreFoundation.CFRunLoopStop(CoreFoundation.CFRunLoopGetCurrent())
+                return None
+            if event_type == kCGEventFlagsChanged:
+                flags = CGEventGetFlags(event)
+                key_code = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode)
+                if flags & (MOD_SHIFT | MOD_CONTROL | MOD_OPTION | MOD_COMMAND | MOD_FN):
+                    captured["key_code"] = key_code
+                    captured["flags"] = flags
+                    CoreFoundation.CFRunLoopStop(CoreFoundation.CFRunLoopGetCurrent())
+                    return None
+            return event
+
+        event_mask = (1 << kCGEventKeyDown) | (1 << kCGEventFlagsChanged)
+        tap = CGEventTapCreate(
+            kCGSessionEventTap,
+            kCGHeadInsertEventTap,
+            0,
+            event_mask,
+            callback,
+            None,
+        )
+
+        if tap is None:
+            logger.error("Failed to create event tap — check Accessibility permissions")
+            print("  Failed to create event tap — check Accessibility permissions")
+            return
+
+        source = CoreFoundation.CFMachPortCreateRunLoopSource(None, tap, 0)
+        loop = CoreFoundation.CFRunLoopGetCurrent()
+        CoreFoundation.CFRunLoopAddSource(loop, source, CoreFoundation.kCFRunLoopCommonModes)
+
+        print("  Press the key (or combo) you want for MIC...")
+        CoreFoundation.CFRunLoopRun()
+        CoreFoundation.CFRunLoopRemoveSource(
+            loop, source, CoreFoundation.kCFRunLoopCommonModes
+        )
+
+        if not captured:
+            print("  No keystroke captured")
+            return
+
+        key_code = captured["key_code"]
+        flags = captured["flags"]
+        clean_flags = flags & (MOD_SHIFT | MOD_CONTROL | MOD_OPTION | MOD_COMMAND | MOD_FN)
+        label = _format_keystroke(key_code, clean_flags)
+
+        self.config["mic_command"] = {
+            "type": "keystroke",
+            "key_code": key_code,
+            "flags": clean_flags,
+            "label": label,
+        }
+        self._save_config()
+        print(f"  mic → {label}")
+
+    def _send_key(self, key_name):
+        if key_name == "Return":
+            script = 'tell application "System Events" to key code 36'
+        elif key_name in ARROW_KEY_CODES:
+            script = f'tell application "System Events" to key code {ARROW_KEY_CODES[key_name]}'
+        else:
+            script = f'tell application "System Events" to keystroke "{key_name}"'
+        subprocess.run(["osascript", "-e", script], capture_output=True)
+
+    # ─── Button Rendering ────────────────────────────────────────────
 
     def _init_fonts(self):
-        """Load system fonts for button labels."""
         candidates = [
             "/System/Library/Fonts/SFCompact.ttf",
             "/System/Library/Fonts/Helvetica.ttc",
             "/System/Library/Fonts/Geneva.ttf",
             "/Library/Fonts/Arial.ttf",
         ]
+
         def load(size):
             for path in candidates:
                 try:
@@ -610,1026 +970,348 @@ class DeckController:
     def _pick_font(self, label):
         if len(label) <= 2:
             return self.font_lg
-        elif len(label) <= 4:
+        if len(label) <= 4:
             return self.font_md
         return self.font_sm
 
-    # ─── Claude Status (Hook Integration) ───────────────────────────
-
-    def _build_tty_map(self):
-        """Map each terminal's primary slot to its TTY.
-        Uses AppleScript to get the TTY for each window (per app), then
-        matches window positions to layout terminal zones.
-        Only the first (frontmost) window per zone is used — behind
-        windows at the same position are ignored."""
-        tty_map = {}
-
-        # Get TTY + bounds for each window, grouped by app
-        for app in TERMINAL_APPS:
-            window_ttys = self._get_app_window_ttys(app)
-            if not window_ttys:
-                continue
-
-            # Match each window to a terminal zone by position
-            # Skip zones already claimed — AppleScript returns front-to-back,
-            # so the first match is the frontmost window at that position.
-            for info in window_ttys:
-                win_cx = info["x"] + info["w"] / 2
-                win_cy = info["y"] + info["h"] / 2
-                for name in self._get_terminal_names():
-                    r = self._get_terminal_rect(name)
-                    if (r["x"] <= win_cx <= r["x"] + r["w"]
-                            and r["y"] <= win_cy <= r["y"] + r["h"]):
-                        primary = self._terminal_to_active_slot(name)
-                        if primary not in tty_map:
-                            tty_map[primary] = info["tty"]
-                        break
-
-        self.slot_tty = tty_map
-
-        # Resolve CWD for each mapped TTY
-        cwd_map = {}
-        for slot, tty in tty_map.items():
-            cwd = self._resolve_tty_cwd(tty)
-            if cwd:
-                cwd_map[slot] = cwd
-        logger.debug("TTY map: %s", tty_map)
-        logger.debug("CWD map: %s", {s: Path(c).name for s, c in cwd_map.items()})
-        self.slot_cwd = cwd_map
-
-    def _resolve_tty_cwd(self, tty_name):
-        """Get the working directory of the most recent shell on a TTY.
-        Uses the last shell process (innermost/newest), which reflects
-        the current working directory even inside Claude Code sessions.
-        Returns the path string, or None if it can't be resolved."""
-        try:
-            # Find all shell PIDs on this TTY (ps lists oldest first)
-            result = subprocess.run(
-                ["ps", "-t", tty_name, "-o", "pid=,comm="],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode != 0:
-                return None
-
-            shell_pid = None
-            for line in result.stdout.strip().split("\n"):
-                parts = line.strip().split(None, 1)
-                if len(parts) == 2:
-                    comm = parts[1].strip().lstrip("-")
-                    if comm in ("zsh", "bash", "fish"):
-                        shell_pid = parts[0].strip()  # keep overwriting — last one wins
-            if not shell_pid:
-                return None
-
-            # Get CWD from the shell process
-            result = subprocess.run(
-                ["lsof", "-a", "-p", shell_pid, "-d", "cwd", "-Fn"],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode != 0:
-                return None
-
-            for line in result.stdout.strip().split("\n"):
-                if line.startswith("n"):
-                    return line[1:]  # strip the 'n' prefix
-            return None
-        except Exception:
-            logger.debug("Failed to resolve CWD for %s", tty_name, exc_info=True)
-            return None
-
-    def _format_cwd(self, path):
-        """Format a CWD path according to the folder_label config setting.
-        Returns the formatted string for display."""
-        if not path:
-            return None
-        mode = self.config.get("folder_label", "last")
-        if mode == "off":
-            return None
-
-        home = str(Path.home())
-        if path.startswith(home):
-            tilde_path = "~" + path[len(home):]
-        else:
-            tilde_path = path
-
-        if mode == "full":
-            return tilde_path
-        elif mode == "two":
-            parts = Path(path).parts
-            return "/".join(parts[-2:]) if len(parts) >= 2 else parts[-1]
-        else:  # "last"
-            return Path(path).name
-
-    def _get_app_window_ttys(self, app_name):
-        """Get TTY and bounds for each window of a terminal app via AppleScript.
-        Returns list of dicts with x, y, w, h, tty. Returns [] if app not running."""
-        if app_name in ("Terminal",):
-            # Terminal.app: 'bounds' gives {left, top, right, bottom}
-            #               'tty of tab 1' gives the TTY
-            script = '''
-tell application "Terminal"
-    set output to ""
-    repeat with i from 1 to count of windows
-        try
-            set b to bounds of window i
-            set t to tty of tab 1 of window i
-            set output to output & (item 1 of b as text) & "," & (item 2 of b as text) & "," & (item 3 of b as text) & "," & (item 4 of b as text) & "," & t & linefeed
-        end try
-    end repeat
-    return output
-end tell
-'''
-        elif app_name in ("iTerm2", "iTerm"):
-            # iTerm2: get bounds + tty entirely from iTerm2 scripting.
-            # Previous approach mixed System Events (position) with iTerm2 (tty),
-            # which could mismatch when window ordering differs between the two.
-            script = '''
-tell application "iTerm2"
-    set output to ""
-    repeat with i from 1 to count of windows
-        try
-            set b to bounds of window i
-            set t to tty of current session of current tab of window i
-            set output to output & (item 1 of b as text) & "," & (item 2 of b as text) & "," & (item 3 of b as text) & "," & (item 4 of b as text) & "," & t & linefeed
-        end try
-    end repeat
-    return output
-end tell
-'''
-        else:
-            return []
-
-        try:
-            result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=10
-            )
-            if result.returncode != 0 or not result.stdout.strip():
-                return []
-
-            windows = []
-            for line in result.stdout.strip().split("\n"):
-                parts = line.strip().split(",")
-                if len(parts) >= 5:
-                    try:
-                        left, top, right, bottom = (
-                            int(parts[0]), int(parts[1]),
-                            int(parts[2]), int(parts[3]),
-                        )
-                        tty = parts[4].strip()
-                        # Normalize TTY: "/dev/ttys003" -> "ttys003"
-                        if tty.startswith("/dev/"):
-                            tty = tty[5:]
-                        windows.append({
-                            "x": left, "y": top,
-                            "w": right - left, "h": bottom - top,
-                            "tty": tty,
-                        })
-                    except ValueError as e:
-                        logger.debug("Skipping malformed window line: %s", e)
-                        continue
-            return windows
-        except Exception:
-            logger.warning("Failed to get terminal windows", exc_info=True)
-            return []
-
-    def _read_status_files(self):
-        """Read hook status files and update slot_status.
-
-        States from hooks:
-          pending    — PreToolUse fired (tool about to run)
-          working    — PostToolUse fired (tool completed) or UserPromptSubmit
-          permission — Notification/permission_prompt (Claude Code confirms)
-          idle       — Stop, idle_prompt, elicitation_dialog
-
-        Inference: if "pending" sits for > PENDING_INFER_SEC without a
-        PostToolUse updating it, the tool is likely waiting for permission.
-        """
-        status_dir = Path(STATUS_DIR)
-        if not status_dir.exists():
-            return
-
-        now = time.time()
-        new_status = {}
-        tty_to_slot = {tty: slot for slot, tty in self.slot_tty.items()}
-
-        for f in status_dir.iterdir():
-            if f.name.startswith("."):
-                continue
+    def _button_dimensions(self):
+        if self.deck:
             try:
-                data = json.loads(f.read_text())
-                tty = data.get("tty", f.name)
-                ts = data.get("ts", 0)
-                state = data.get("state", "unknown")
-                age = now - ts
-
-                # Permission (red) never expires — stays until a new state arrives.
-                # Other states expire after STATUS_STALE_SEC (1 hour).
-                idle_timeout = self.config.get("idle_timeout", STATUS_STALE_SEC)
-                if idle_timeout and state not in ("permission", "pending") and age > idle_timeout:
-                    continue
-
-                # Infer permission: "pending" (PreToolUse) with no PostToolUse
-                # after PENDING_INFER_SEC means the tool is waiting for approval.
-                if state == "pending":
-                    if age >= PENDING_INFER_SEC:
-                        state = "permission"  # inferred
-                    else:
-                        state = "working"     # still fresh — show as working
-
-                slot = tty_to_slot.get(tty)
-                if slot is not None:
-                    new_status[slot] = state
-            except (json.JSONDecodeError, IOError) as e:
-                logger.debug("Skipping status file: %s", e)
-                continue
-
-        self.slot_status = new_status
-
-    # ─── Screen Border Overlay ────────────────────────────────────────
-
-    def _start_overlay(self):
-        """Spawn the overlay helper process."""
-        # Clean up stale overlay file from previous runs
-        try:
-            Path(OVERLAY_FILE).unlink(missing_ok=True)
-        except Exception:
-            logger.warning("Failed to clean stale overlay file", exc_info=True)
-
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        overlay_script = os.path.join(script_dir, "overlay.py")
-        venv_python = os.path.join(script_dir, ".venv", "bin", "python")
-
-        # Use venv python if available, otherwise sys.executable
-        python = venv_python if os.path.exists(venv_python) else sys.executable
-        cmd = [python, overlay_script]
-
-        try:
-            log_path = os.path.join(script_dir, "overlay.log")
-            try:
-                log_file = open(log_path, "w")
-                self._overlay_log = log_file  # keep ref so fd stays open
-            except PermissionError:
-                logger.debug("Overlay log file permission denied, discarding output")
-                # Stale root-owned log from previous sudo run — discard output
-                log_file = open(os.devnull, "w")
-            self.overlay_proc = subprocess.Popen(
-                cmd, stdin=subprocess.DEVNULL,
-                stdout=log_file, stderr=log_file,
-                start_new_session=True,
-            )
-        except Exception:
-            logger.error("Failed to start overlay", exc_info=True)
-            self.overlay_proc = None
-
-    def _stop_overlay(self):
-        """Kill the overlay helper and clean up."""
-        if self.overlay_proc:
-            try:
-                self.overlay_proc.terminate()
-                self.overlay_proc.wait(timeout=3)
+                image = PILHelper.create_image(self.deck, background=COLOR_BG_DEFAULT)
+                return image.size
             except Exception:
-                logger.warning("Overlay terminate failed, attempting kill", exc_info=True)
-                try:
-                    self.overlay_proc.kill()
-                except Exception:
-                    logger.warning("Overlay kill also failed", exc_info=True)
-            self.overlay_proc = None
-        # Remove overlay file
-        try:
-            Path(OVERLAY_FILE).unlink(missing_ok=True)
-        except Exception:
-            logger.warning("Failed to remove overlay file", exc_info=True)
+                logger.debug("Failed to query button dimensions", exc_info=True)
+        return (72, 72)
 
-    def _update_overlay(self):
-        """Write active window position to the overlay file (atomic)."""
-        overlay_path = Path(OVERLAY_FILE)
-        if self.active_slot is not None:
-            terminal_name = self._key_to_terminal(self.active_slot)
-            rect = self._get_terminal_rect(terminal_name) if terminal_name else self._grid_rect(self.active_slot)
-            active_color = self._color("active", COLOR_BG_ACTIVE)
-            raw_cwd = self.slot_cwd.get(self.active_slot)
-            formatted_cwd = self._format_cwd(raw_cwd) if raw_cwd and self.config.get("overlay_label", True) else None
-            label_text_color = self._color("label_text", (0, 0, 0))
-            data = {"visible": True,
-                    "x": rect["x"], "y": rect["y"],
-                    "w": rect["w"], "h": rect["h"],
-                    "color": list(active_color),
-                    "cwd": formatted_cwd,
-                    "label_text_color": list(label_text_color)}
-        else:
-            data = {"visible": False}
-
-        try:
-            tmp = overlay_path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(data))
-            tmp.rename(overlay_path)
-        except Exception:
-            logger.warning("Failed to write overlay file", exc_info=True)
-
-    # ─── Grid Geometry ───────────────────────────────────────────────
-
-    def _grid_rect(self, slot):
-        """Screen rectangle for a grid slot (0-indexed, row-major)."""
-        col = slot % COLS
-        row = slot // COLS
-        cell_w = self.screen["w"] / COLS
-        cell_h = self.screen["h"] / ROWS
-        x = self.screen["x"] + col * cell_w
-        y = self.screen["y"] + row * cell_h
-        return {
-            "x": int(x), "y": int(y),
-            "w": int(cell_w), "h": int(cell_h),
-            "cx": int(x + cell_w / 2),
-            "cy": int(y + cell_h / 2),
-        }
-
-    # ─── Window Management ───────────────────────────────────────────
-
-    def _get_our_tty(self):
-        """Get the TTY name of the terminal running this process."""
-        try:
-            tty_path = os.ttyname(sys.stdin.fileno())
-            return tty_path.replace("/dev/", "")
-        except (OSError, AttributeError) as e:
-            logger.debug("TTY detection via stdin failed: %s", e)
-        # Fallback: tty command
-        try:
-            result = subprocess.run(["tty"], capture_output=True, text=True, timeout=2)
-            if result.returncode == 0 and result.stdout.strip() != "not a tty":
-                return result.stdout.strip().replace("/dev/", "")
-        except Exception as e:
-            logger.debug("TTY detection via tty command failed: %s", e)
-        return None
-
-    def _find_controller_window(self, term_wins):
-        """Find which terminal window belongs to this controller by matching TTY.
-        Returns the window dict, or None if not found."""
-        our_tty = self._get_our_tty()
-        if not our_tty:
-            return None
-
-        # Query all terminal apps for their window TTYs
-        for app in TERMINAL_APPS:
-            window_ttys = self._get_app_window_ttys(app)
-            for info in window_ttys:
-                if info["tty"] == our_tty:
-                    # Found our TTY — match to a Quartz window by position
-                    for win in term_wins:
-                        if (abs(win["x"] - info["x"]) <= 5
-                                and abs(win["y"] - info["y"]) <= 5):
-                            return win
-        return None
-
-    def _refresh_controller_win_id(self):
-        """Update the cached controller window ID by re-matching TTY."""
-        term_wins = self._get_terminal_windows()
-        controller_win = self._find_controller_window(term_wins)
-        if controller_win:
-            self._controller_win_id = controller_win["id"]
-        else:
-            self._controller_win_id = None
-
-    def tile_windows(self):
-        """Arrange terminal windows according to the current layout.
-        The controller's own terminal is always placed in slot 14 (bottom-right).
-        Remaining windows are matched to layout terminals by proximity."""
-        term_wins = self._get_terminal_windows()
-        if not term_wins:
-            logger.warning("No terminal windows found")
-            return
-
-        # Find the controller's own terminal window by TTY
-        controller_win = self._find_controller_window(term_wins)
-        other_wins = []
-        for win in term_wins:
-            if controller_win and win["id"] == controller_win["id"]:
-                continue
-            other_wins.append(win)
-
-        # Place controller window in slot 14 (bottom-right, always single cell)
-        if controller_win:
-            logger.info("Controller terminal -> slot 14")
-            self._move_window_to_rect(controller_win, self._grid_rect(GRID_SLOTS - 1))
-            self._controller_win_id = controller_win["id"]
-        else:
-            self._controller_win_id = None
-
-        # Get terminal zones from layout
-        terminal_names = self._get_terminal_names()
-        terminal_rects = {name: self._get_terminal_rect(name) for name in terminal_names}
-
-        count = min(len(other_wins), len(terminal_names))
-        logger.info("Found %d terminal window(s), tiling %d into layout '%s'", len(term_wins), count, self.config.get('layout', 'default'))
-
-        # Match windows to terminal zones by proximity
-        assignments = self._match_windows_to_terminals(other_wins[:count], terminal_names, terminal_rects)
-
-        for name, win in sorted(assignments.items()):
-            self._move_window_to_rect(win, terminal_rects[name])
-
-    def _match_windows_to_terminals(self, windows, terminal_names, terminal_rects):
-        """Match windows to terminal zones by proximity (nearest center-to-center).
-        Returns dict of terminal_name -> window."""
-        pairs = []
-        for win in windows:
-            win_cx = win["x"] + win["w"] / 2
-            win_cy = win["y"] + win["h"] / 2
-            for name in terminal_names:
-                r = terminal_rects[name]
-                dx = win_cx - r["cx"]
-                dy = win_cy - r["cy"]
-                pairs.append((dx * dx + dy * dy, name, id(win), win))
-
-        pairs.sort()
-        used_names = set()
-        used_wins = set()
-        assignments = {}
-        for dist, name, win_id, win in pairs:
-            if name in used_names or win_id in used_wins:
-                continue
-            assignments[name] = win
-            used_names.add(name)
-            used_wins.add(win_id)
-            if len(assignments) >= len(windows):
-                break
-
-        return assignments
-
-    def _move_window_to_rect(self, win, r):
-        """Move and resize a window to fill the given rect."""
-        script = f'''
-tell application "System Events"
-    tell process "{win["owner"]}"
-        repeat with w in windows
-            set p to position of w
-            set s to size of w
-            set wx to item 1 of p
-            set wy to item 2 of p
-            set ww to item 1 of s
-            set wh to item 2 of s
-            if wx = {win["x"]} and wy = {win["y"]} and ww = {win["w"]} and wh = {win["h"]} then
-                set position of w to {{{r["x"]}, {r["y"]}}}
-                set size of w to {{{r["w"]}, {r["h"]}}}
-                return
-            end if
-        end repeat
-    end tell
-end tell
-'''
-        subprocess.run(["osascript", "-e", script], capture_output=True)
-
-    def _is_snapped(self, win):
-        """Check if a window is already snapped to a terminal zone."""
-        for name in self._get_terminal_names():
-            r = self._get_terminal_rect(name)
-            if (abs(win["x"] - r["x"]) <= 2
-                    and abs(win["y"] - r["y"]) <= 2
-                    and abs(win["w"] - r["w"]) <= 2
-                    and abs(win["h"] - r["h"]) <= 2):
-                return True
-        # Also check the enter slot
-        r = self._grid_rect(ENTER_KEY_INDEX)
-        if (abs(win["x"] - r["x"]) <= 2
-                and abs(win["y"] - r["y"]) <= 2
-                and abs(win["w"] - r["w"]) <= 2
-                and abs(win["h"] - r["h"]) <= 2):
-            return True
-        return False
-
-    def _check_snap_to_grid(self):
-        """Detect windows that have been dragged and dropped, then snap them
-        into the nearest grid slot. Works by tracking position changes:
-        1. Window moves → mark as candidate
-        2. Window holds still for SNAP_SETTLE_POLLS → snap it
-        This avoids snapping mid-drag."""
-        term_wins = self._get_terminal_windows()
-        current_positions = {}
-        win_by_id = {}
-
-        for win in term_wins:
-            wid = win["id"]
-            current_positions[wid] = (win["x"], win["y"], win["w"], win["h"])
-            win_by_id[wid] = win
-
-        snapped_any = False
-
-        for wid, pos in current_positions.items():
-            prev_pos = self._prev_win_positions.get(wid)
-            win = win_by_id[wid]
-
-            if prev_pos is None:
-                # New window — just record it
-                continue
-
-            # Check if position changed since last poll
-            dx = abs(pos[0] - prev_pos[0])
-            dy = abs(pos[1] - prev_pos[1])
-            moved = (dx > SNAP_TOLERANCE or dy > SNAP_TOLERANCE
-                     or abs(pos[2] - prev_pos[2]) > SNAP_TOLERANCE
-                     or abs(pos[3] - prev_pos[3]) > SNAP_TOLERANCE)
-
-            if moved:
-                # Window is moving — reset settle counter
-                self._snap_candidates[wid] = {"pos": pos, "polls_stable": 0, "win": win}
-            elif wid in self._snap_candidates:
-                cand = self._snap_candidates[wid]
-                # Check if position matches what we recorded as the candidate
-                cdx = abs(pos[0] - cand["pos"][0])
-                cdy = abs(pos[1] - cand["pos"][1])
-                if cdx <= SNAP_TOLERANCE and cdy <= SNAP_TOLERANCE:
-                    cand["polls_stable"] += 1
-                    cand["win"] = win  # update with latest bounds
-                    if cand["polls_stable"] >= SNAP_SETTLE_POLLS:
-                        # Window has settled — snap if not already in a slot
-                        if not self._is_snapped(win):
-                            # Controller always snaps to slot 14
-                            if wid == self._controller_win_id:
-                                r = self._grid_rect(ENTER_KEY_INDEX)
-                                logger.info("Snapping controller window to slot 14")
-                                self._move_window_to_rect(win, r)
-                                snapped_any = True
-                            else:
-                                best_terminal = self._find_nearest_empty_terminal(win)
-                                if best_terminal is not None:
-                                    r = self._get_terminal_rect(best_terminal)
-                                    logger.info("Snapping window to %s", best_terminal)
-                                    self._move_window_to_rect(win, r)
-                                    snapped_any = True
-                        del self._snap_candidates[wid]
-                else:
-                    # Moved again to a new spot — reset
-                    cand["pos"] = pos
-                    cand["polls_stable"] = 0
-                    cand["win"] = win
-
-        # Update previous positions (re-read after any snaps)
-        if snapped_any:
-            term_wins = self._get_terminal_windows()
-            self._prev_win_positions = {
-                w["id"]: (w["x"], w["y"], w["w"], w["h"]) for w in term_wins
-            }
-            self._snap_candidates.clear()
-            # Rebuild TTY map since windows moved
-            self._build_tty_map()
-            self._update_overlay()
-        else:
-            self._prev_win_positions = current_positions
-
-        # Clean up candidates for windows that no longer exist
-        live_ids = set(current_positions.keys())
-        for wid in list(self._snap_candidates.keys()):
-            if wid not in live_ids:
-                del self._snap_candidates[wid]
-
-        return snapped_any
-
-    def _find_nearest_empty_terminal(self, win):
-        """Find the terminal zone closest to the window's center that doesn't
-        already have a properly-snapped window in it."""
-        win_cx = win["x"] + win["w"] / 2
-        win_cy = win["y"] + win["h"] / 2
-
-        # Find which terminals are occupied by snapped windows
-        occupied = set()
-        for tw in self._get_terminal_windows():
-            if tw["id"] == win["id"]:
-                continue
-            tw_cx = tw["x"] + tw["w"] / 2
-            tw_cy = tw["y"] + tw["h"] / 2
-            for name in self._get_terminal_names():
-                r = self._get_terminal_rect(name)
-                if (abs(tw["x"] - r["x"]) <= 5
-                        and abs(tw["y"] - r["y"]) <= 5
-                        and abs(tw["w"] - r["w"]) <= 5
-                        and abs(tw["h"] - r["h"]) <= 5):
-                    occupied.add(name)
-                    break
-
-        best_name = None
-        best_dist = float("inf")
-        for name in self._get_terminal_names():
-            if name in occupied:
-                continue
-            r = self._get_terminal_rect(name)
-            dx = win_cx - r["cx"]
-            dy = win_cy - r["cy"]
-            dist = dx * dx + dy * dy
-            if dist < best_dist:
-                best_dist = dist
-                best_name = name
-
-        return best_name
-
-    def _activate_slot(self, slot):
-        """Focus the terminal window at the given grid slot (any app).
-        For merged layouts, resolves to the terminal's primary slot."""
-        terminal_name = self._key_to_terminal(slot)
-        if terminal_name:
-            # Use the terminal's merged rect for activation
-            rect = self._get_terminal_rect(terminal_name)
-            # Set active_slot to the primary key for this terminal
-            slot = self._terminal_to_active_slot(terminal_name)
-        else:
-            rect = self._grid_rect(slot)
-        cx, cy = rect["cx"], rect["cy"]
-        # Find which terminal window is at this slot via Quartz
-        term_wins = self._get_terminal_windows()
-        target_owner = None
-        for w in term_wins:
-            if (w["x"] <= cx <= w["x"] + w["w"]
-                    and w["y"] <= cy <= w["y"] + w["h"]):
-                target_owner = w["owner"]
-                break
-
-        if target_owner is None:
-            self.active_slot = slot
-            self._update_overlay()
-            return
-
-        script = f'''
-tell application "{target_owner}" to activate
-delay 0.05
-tell application "System Events"
-    tell process "{target_owner}"
-        repeat with w in windows
-            set p to position of w
-            set s to size of w
-            set wx to item 1 of p
-            set wy to item 2 of p
-            set ww to item 1 of s
-            set wh to item 2 of s
-            if {cx} >= wx and {cx} <= (wx + ww) and {cy} >= wy and {cy} <= (wy + wh) then
-                perform action "AXRaise" of w
-                return
-            end if
-        end repeat
-    end tell
-end tell
-'''
-        subprocess.run(["osascript", "-e", script], capture_output=True)
-        self.active_slot = slot
-        self._update_overlay()
-
-    def _get_frontmost_slot(self):
-        """Detect which grid slot the frontmost terminal window occupies.
-        Uses Quartz window list (no subprocess) to avoid title bar flicker."""
-        # The Quartz window list is ordered front-to-back.
-        # Find the first (frontmost) terminal window and match it to a grid slot.
-        windows = CGWindowListCopyWindowInfo(
-            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
-            kCGNullWindowID,
-        )
-        for w in windows or []:
-            layer = w.get("kCGWindowLayer", 0)
-            if layer != 0:  # normal windows are layer 0
-                continue
-            bounds = w.get("kCGWindowBounds", {})
-            bw = bounds.get("Width", 0)
-            bh = bounds.get("Height", 0)
-            if bw < 100 or bh < 100:
-                continue
-            # First real window — if it's not a terminal app, no terminal is frontmost
-            owner = w.get("kCGWindowOwnerName", "")
-            if owner not in TERMINAL_APPS:
-                return None
-            # If this is the controller window, always slot 14
-            win_id = w.get("kCGWindowNumber", 0)
-            if win_id and win_id == self._controller_win_id:
-                return ENTER_KEY_INDEX
-            win_cx = bounds.get("X", 0) + bw / 2
-            win_cy = bounds.get("Y", 0) + bh / 2
-            # Match against terminal zones (handles merged slots)
-            for name in self._get_terminal_names():
-                r = self._get_terminal_rect(name)
-                if (r["x"] <= win_cx <= r["x"] + r["w"]
-                        and r["y"] <= win_cy <= r["y"] + r["h"]):
-                    return self._terminal_to_active_slot(name)
-            return None  # frontmost terminal found but not in any grid slot
-        return None  # no terminal window is frontmost
-
-    # ─── Keystroke Sending ───────────────────────────────────────────
-
-    def _trigger_mic(self):
-        """Trigger the MIC action based on config:
-          'fn'          → double-press fn key (Whisprflow default)
-          dict          → learned keystroke (key_code + flags)
-          other string  → shell command
-        """
-        mic_cmd = self.config.get("mic_command", "fn")
-
-        if mic_cmd == "fn":
-            # Default: double fn press for Whisprflow
-            for _ in range(2):
-                event_down = CGEventCreateKeyboardEvent(None, FN_KEY_CODE, True)
-                CGEventPost(kCGHIDEventTap, event_down)
-                event_up = CGEventCreateKeyboardEvent(None, FN_KEY_CODE, False)
-                CGEventPost(kCGHIDEventTap, event_up)
-                time.sleep(0.05)
-
-        elif isinstance(mic_cmd, dict) and mic_cmd.get("type") == "keystroke":
-            # Learned keystroke
-            kc = mic_cmd["key_code"]
-            flags = mic_cmd.get("flags", 0)
-            event_down = CGEventCreateKeyboardEvent(None, kc, True)
-            if flags:
-                CGEventSetFlags(event_down, flags)
-            CGEventPost(kCGHIDEventTap, event_down)
-            event_up = CGEventCreateKeyboardEvent(None, kc, False)
-            if flags:
-                CGEventSetFlags(event_up, flags)
-            CGEventPost(kCGHIDEventTap, event_up)
-
-        elif isinstance(mic_cmd, str):
-            # Shell command
-            try:
-                subprocess.Popen(mic_cmd, shell=True,
-                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:
-                logger.warning("MIC command failed", exc_info=True)
-
-    def _learn_keystroke(self):
-        """Listen for a single keystroke and save it as the MIC action.
-        Uses a CGEvent tap to capture the next key press with modifiers."""
-        captured = {}
-
-        def callback(proxy, event_type, event, refcon):
-            if event_type == kCGEventKeyDown:
-                captured["key_code"] = CGEventGetIntegerValueField(
-                    event, kCGKeyboardEventKeycode
-                )
-                captured["flags"] = CGEventGetFlags(event)
-                CoreFoundation.CFRunLoopStop(CoreFoundation.CFRunLoopGetCurrent())
-                return None  # swallow the event
-            elif event_type == kCGEventFlagsChanged:
-                # Modifier-only key (like fn alone) — capture on press
-                flags = CGEventGetFlags(event)
-                key_code = CGEventGetIntegerValueField(
-                    event, kCGKeyboardEventKeycode
-                )
-                # Only capture on press (flags non-zero), skip release
-                if flags & (MOD_SHIFT | MOD_CONTROL | MOD_OPTION | MOD_COMMAND | MOD_FN):
-                    captured["key_code"] = key_code
-                    captured["flags"] = flags
-                    CoreFoundation.CFRunLoopStop(CoreFoundation.CFRunLoopGetCurrent())
-                    return None
-            return event
-
-        # Listen for both key down and modifier-only presses (like fn)
-        event_mask = (1 << kCGEventKeyDown) | (1 << kCGEventFlagsChanged)
-        tap = CGEventTapCreate(
-            kCGSessionEventTap,
-            kCGHeadInsertEventTap,
-            0,  # active filter (can suppress events)
-            event_mask,
-            callback,
-            None,
-        )
-
-        if tap is None:
-            logger.error("Failed to create event tap — check Accessibility permissions")
-            print("  Failed to create event tap — check Accessibility permissions")
-            return
-
-        source = CoreFoundation.CFMachPortCreateRunLoopSource(None, tap, 0)
-        loop = CoreFoundation.CFRunLoopGetCurrent()
-        CoreFoundation.CFRunLoopAddSource(loop, source, CoreFoundation.kCFRunLoopCommonModes)
-
-        print("  Press the key (or combo) you want for MIC...")
-
-        # Block until a keystroke is captured
-        CoreFoundation.CFRunLoopRun()
-
-        # Clean up the tap
-        CoreFoundation.CFRunLoopRemoveSource(loop, source, CoreFoundation.kCFRunLoopCommonModes)
-
-        if not captured:
-            print("  No keystroke captured")
-            return
-
-        key_code = captured["key_code"]
-        flags = captured["flags"]
-        # Strip low bits from flags — only keep modifier masks
-        clean_flags = flags & (MOD_SHIFT | MOD_CONTROL | MOD_OPTION | MOD_COMMAND | MOD_FN)
-
-        label = _format_keystroke(key_code, clean_flags)
-        self.config["mic_command"] = {
-            "type": "keystroke",
-            "key_code": key_code,
-            "flags": clean_flags,
-            "label": label,
-        }
-        self._save_config()
-        print(f"  mic → {label}")
-
-    def _send_key(self, key_name):
-        """Send a single keystroke to the currently active window."""
-        if key_name == "Return":
-            script = 'tell application "System Events" to key code 36'
-        elif key_name in ARROW_KEY_CODES:
-            script = f'tell application "System Events" to key code {ARROW_KEY_CODES[key_name]}'
-        else:
-            # For number keys 1-4
-            script = f'tell application "System Events" to keystroke "{key_name}"'
-        subprocess.run(["osascript", "-e", script], capture_output=True)
-
-    # ─── Button Rendering ────────────────────────────────────────────
-
-    def _render_button(self, label, bg=COLOR_BG_DEFAULT, fg=COLOR_FG_DEFAULT,
-                       border_color=None, border_width=8, subtitle=None):
-        """Create a button image for the Stream Deck.
-        If border_color is set, draws a colored border around the button.
-        If subtitle is set, draws a dark bar across the top with the subtitle text."""
+    def _render_button(
+        self,
+        label,
+        bg=COLOR_BG_DEFAULT,
+        fg=COLOR_FG_DEFAULT,
+        border_color=None,
+        border_width=8,
+        subtitle=None,
+    ):
         image = PILHelper.create_image(self.deck, background=bg)
         draw = ImageDraw.Draw(image)
-        w, h = image.size
+        width, height = image.size
 
-        # Draw border if specified (for active window indicator)
         if border_color:
             for i in range(border_width):
                 draw.rectangle(
-                    [i, i, w - 1 - i, h - 1 - i],
+                    [i, i, width - 1 - i, height - 1 - i],
                     outline=border_color,
                 )
 
-        # Draw subtitle bar across top
         bar_h = 0
         if subtitle:
             bar_h = 16
-            draw.rectangle([0, 0, w, bar_h], fill=(0, 0, 0, 153))
-            # Truncate subtitle if too wide
-            sub_bbox = draw.textbbox((0, 0), subtitle, font=self.font_xs)
+            draw.rectangle([0, 0, width, bar_h], fill=(0, 0, 0, 153))
+            display_subtitle = subtitle
+            sub_bbox = draw.textbbox((0, 0), display_subtitle, font=self.font_xs)
             sub_tw = sub_bbox[2] - sub_bbox[0]
-            if sub_tw > w - 4:
-                while sub_tw > w - 10 and len(subtitle) > 3:
-                    subtitle = subtitle[:-1]
-                    sub_bbox = draw.textbbox((0, 0), subtitle + "…", font=self.font_xs)
-                    sub_tw = sub_bbox[2] - sub_bbox[0]
-                subtitle = subtitle + "…"
-                sub_bbox = draw.textbbox((0, 0), subtitle, font=self.font_xs)
+            while sub_tw > width - 10 and len(display_subtitle) > 3:
+                display_subtitle = display_subtitle[:-1]
+                sub_bbox = draw.textbbox((0, 0), f"{display_subtitle}…", font=self.font_xs)
                 sub_tw = sub_bbox[2] - sub_bbox[0]
-            sub_x = (w - sub_tw) / 2
+            if display_subtitle != subtitle:
+                display_subtitle = f"{display_subtitle}…"
+            sub_x = (width - sub_tw) / 2
             sub_y = (bar_h - (sub_bbox[3] - sub_bbox[1])) / 2 - 1
-            draw.text((sub_x, sub_y), subtitle, font=self.font_xs, fill=(255, 255, 255))
+            draw.text(
+                (sub_x, sub_y),
+                display_subtitle,
+                font=self.font_xs,
+                fill=(255, 255, 255),
+            )
 
-        # Draw main label (shifted down if subtitle present)
-        font = self._pick_font(label)
-        bbox = draw.textbbox((0, 0), label, font=font)
-        tw = bbox[2] - bbox[0]
-        th = bbox[3] - bbox[1]
-        x = (w - tw) / 2
-        y = (h - th) / 2 - 2 + (bar_h / 2 if bar_h else 0)
-        draw.text((x, y), label, font=font, fill=fg)
+        if label:
+            font = self._pick_font(label)
+            bbox = draw.textbbox((0, 0), label, font=font)
+            tw = bbox[2] - bbox[0]
+            th = bbox[3] - bbox[1]
+            x = (width - tw) / 2
+            y = (height - th) / 2 - 2 + (bar_h / 2 if bar_h else 0)
+            draw.text((x, y), label, font=font, fill=fg)
+
         return PILHelper.to_native_format(self.deck, image)
+
+    def _first_display_value(self, value):
+        if value is None:
+            return None
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
+        if isinstance(value, (int, float, bool)):
+            return str(value)
+        if isinstance(value, list):
+            for item in value:
+                found = self._first_display_value(item)
+                if found:
+                    return found
+            return None
+        if isinstance(value, dict):
+            for item in value.values():
+                found = self._first_display_value(item)
+                if found:
+                    return found
+            return None
+        return str(value)
+
+    def _format_tool_command(self, tool_info):
+        if not tool_info:
+            return "Permission required"
+
+        tool_name = str(tool_info.get("tool_name") or "Tool")
+        tool_input = tool_info.get("tool_input")
+        lower_name = tool_name.lower()
+
+        summary = None
+        if isinstance(tool_input, dict):
+            if lower_name == "bash":
+                summary = tool_input.get("command") or tool_input.get("cmd")
+            elif lower_name in {"read", "edit", "write", "multiedit"}:
+                summary = (
+                    tool_input.get("file_path")
+                    or tool_input.get("path")
+                    or self._first_display_value(tool_input.get("paths"))
+                )
+
+        if summary is None:
+            summary = self._first_display_value(tool_input)
+
+        if summary:
+            return f"{tool_name}: {summary}"
+        return tool_name
+
+    def _render_scroll_strip(self, text):
+        button_w, button_h = self._button_dimensions()
+        viewport_w = button_w * (KEYS_PER_ROW - 1)
+        gap = max(button_w // 2, 24)
+        background = tuple(max(c // 3, 20) for c in self._color("permission", COLOR_BG_PERMISSION))
+
+        probe = Image.new("RGB", (1, 1), background)
+        draw = ImageDraw.Draw(probe)
+        bbox = draw.textbbox((0, 0), text, font=self.font_sm)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+
+        strip_w = max(text_w + gap * 2, viewport_w + gap)
+        strip = Image.new("RGB", (strip_w, button_h), background)
+        draw = ImageDraw.Draw(strip)
+        text_x = gap
+        text_y = (button_h - text_h) / 2 - bbox[1]
+        draw.text((text_x, text_y), text, font=self.font_sm, fill=COLOR_FG_PERMISSION)
+        return strip
+
+    def _ensure_scroll_strip(self, label_key):
+        text = self._format_tool_command(self.slot_tool_info.get(label_key))
+        if label_key not in self.scroll_images or self.scroll_text.get(label_key) != text:
+            self.scroll_images[label_key] = self._render_scroll_strip(text)
+            self.scroll_text[label_key] = text
+            self.scroll_offsets[label_key] = 0
+        return self.scroll_images[label_key]
+
+    def _render_scroll_button(self, strip, offset, button_idx):
+        button_w, button_h = self._button_dimensions()
+        start = (offset + button_idx * button_w) % strip.width
+
+        if start + button_w <= strip.width:
+            crop = strip.crop((start, 0, start + button_w, button_h))
+        else:
+            right = strip.crop((start, 0, strip.width, button_h))
+            left = strip.crop((0, 0, button_w - right.width, button_h))
+            crop = Image.new("RGB", (button_w, button_h))
+            crop.paste(right, (0, 0))
+            crop.paste(left, (right.width, 0))
+
+        return PILHelper.to_native_format(self.deck, crop)
+
+    def _advance_scroll_offset(self, label_key, strip_width):
+        speed = max(int(self.config.get("scroll_speed", DEFAULT_SCROLL_SPEED)), 0)
+        if strip_width <= 0:
+            self.scroll_offsets[label_key] = 0
+            return 0
+        next_offset = (self.scroll_offsets.get(label_key, 0) + speed) % strip_width
+        self.scroll_offsets[label_key] = next_offset
+        return next_offset
+
+    def _advance_scroll_offsets(self):
+        changed = False
+        for label_key, state in self.slot_status.items():
+            if state != "permission":
+                continue
+            strip = self._ensure_scroll_strip(label_key)
+            old_offset = self.scroll_offsets.get(label_key, 0)
+            new_offset = self._advance_scroll_offset(label_key, strip.width)
+            if new_offset != old_offset:
+                changed = True
+        return changed
 
     # ─── Display Updates ─────────────────────────────────────────────
 
     def _update_all_buttons(self):
-        """Redraw all buttons for the current mode."""
-        if self.mode == MODE_GRID:
-            self._draw_grid_mode()
-        else:
+        if self.mode == MODE_NAV:
             self._draw_nav_mode()
+        else:
+            self._draw_row_mode()
 
     def _get_slot_style(self, slot):
-        """Determine bg, fg, and border for a grid slot.
-        For merged layouts, all keys in the same terminal share state.
-        Status color is always the fill. Active window gets an amber border."""
-        # Resolve to primary slot for merged terminals
-        terminal_name = self._key_to_terminal(slot)
-        primary = self._terminal_to_active_slot(terminal_name) if terminal_name else slot
-        is_active = (primary == self.active_slot)
-        status = self.slot_status.get(primary)
+        if isinstance(slot, str):
+            label_key = self._session_label_key(slot)
+        else:
+            session = self._key_to_session(slot)
+            label_key = self._session_label_key(session) if session else slot
+
+        is_active = label_key == self.active_slot
+        status = self.slot_status.get(label_key)
         active_color = self._color("active", COLOR_BG_ACTIVE)
         border = active_color if is_active else None
 
         if status == "idle":
             return self._color("idle", COLOR_BG_IDLE), COLOR_FG_IDLE, border
-        elif status == "working":
+        if status == "working":
             return self._color("working", COLOR_BG_WORKING), COLOR_FG_WORKING, border
-        elif status == "permission":
+        if status == "permission":
             perm_color = self._color("permission", COLOR_BG_PERMISSION)
             if self.blink_on:
                 return perm_color, COLOR_FG_PERMISSION, border
-            else:
-                # Blink off phase: dim version of permission color
-                dim = tuple(max(c // 4, 10) for c in perm_color)
-                return dim, (100, 100, 100), border
+            dim = tuple(max(c // 4, 10) for c in perm_color)
+            return dim, (100, 100, 100), border
 
-        # No Claude status — use amber fill for active, black for inactive
         if is_active:
-            return active_color, COLOR_FG_ACTIVE, None
+            return active_color, self._color("label_text", COLOR_FG_ACTIVE), None
         return COLOR_BG_DEFAULT, COLOR_FG_DEFAULT, None
 
-    def _draw_grid_mode(self):
-        layout = self._get_layout()
-        for i in range(DECK_TERMINAL_SLOTS):
-            label = layout[i] if i < len(layout) else f"T{i+1}"
-            bg, fg, border = self._get_slot_style(i)
-            # Resolve CWD subtitle for this slot
-            terminal_name = self._key_to_terminal(i)
-            primary = self._terminal_to_active_slot(terminal_name) if terminal_name else i
-            raw_cwd = self.slot_cwd.get(primary)
-            subtitle = self._format_cwd(raw_cwd) if raw_cwd and self.config.get("button_labels", True) else None
+    def _draw_row_mode(self):
+        for session in SESSIONS:
+            label_key = self._session_label_key(session)
+            bg, fg, border = self._get_slot_style(label_key)
             self.deck.set_key_image(
-                i, self._render_button(label, bg, fg, border_color=border, subtitle=subtitle)
+                label_key,
+                self._render_button(session, bg, fg, border_color=border),
             )
-        # Enter key (always present, no subtitle)
-        self.deck.set_key_image(
-            ENTER_KEY_INDEX,
-            self._render_button("⏎", COLOR_BG_ENTER, COLOR_FG_ENTER),
-        )
+
+            info_keys = range(label_key + 1, label_key + KEYS_PER_ROW)
+            status = self.slot_status.get(label_key)
+            is_mapped = label_key in self.slot_tty
+
+            if not is_mapped:
+                for key in info_keys:
+                    self.deck.set_key_image(
+                        key, self._render_button("", COLOR_BG_DEFAULT, COLOR_FG_DEFAULT)
+                    )
+                continue
+
+            if status == "permission":
+                strip = self._ensure_scroll_strip(label_key)
+                offset = self.scroll_offsets.get(label_key, 0)
+                for button_idx, key in enumerate(info_keys):
+                    self.deck.set_key_image(
+                        key, self._render_scroll_button(strip, offset, button_idx)
+                    )
+                continue
+
+            subtitle = None
+            raw_cwd = self.slot_cwd.get(label_key)
+            if raw_cwd and self.config.get("button_labels", True):
+                subtitle = self._format_cwd(raw_cwd)
+
+            first_key = label_key + 1
+            self.deck.set_key_image(
+                first_key,
+                self._render_button("", COLOR_BG_DEFAULT, COLOR_FG_DEFAULT, subtitle=subtitle),
+            )
+            for key in range(first_key + 1, label_key + KEYS_PER_ROW):
+                self.deck.set_key_image(
+                    key, self._render_button("", COLOR_BG_DEFAULT, COLOR_FG_DEFAULT)
+                )
 
     def _get_nav_style(self, key):
-        """Get nav button style with config color overrides."""
         style = NAV_BUTTON_STYLES.get(key)
         if style is None:
             return None
-        # Override colors from config
-        label = style["label"]
+
         bg = style["bg"]
-        fg = style["fg"]
-        if key in (0, 1, 2, 3, 4):  # number keys
-            bg = self._color(f"num_{key+1}", bg)
-        elif key in (7, 11, 12, 13):  # arrows
+        if key in (0, 1, 2, 3, 4):
+            bg = self._color(f"num_{key + 1}", bg)
+        elif key in (7, 11, 12, 13):
             bg = self._color("arrows", bg)
-        elif key in (10, 14):  # MIC, Enter
+        elif key in (10, 14):
             bg = self._color("mic_enter", bg)
-        return {"label": label, "bg": bg, "fg": fg}
+
+        return {"label": style["label"], "bg": bg, "fg": style["fg"]}
 
     def _draw_nav_mode(self):
-        for i in range(TOTAL_KEYS):
-            border = self._color("active", COLOR_BG_ACTIVE) if i == self.active_slot else None
-            style = self._get_nav_style(i)
+        for key in range(TOTAL_KEYS):
+            border = self._color("active", COLOR_BG_ACTIVE) if key == self.active_slot else None
+            style = self._get_nav_style(key)
             if style:
                 self.deck.set_key_image(
-                    i, self._render_button(
-                        style["label"], style["bg"], style["fg"],
+                    key,
+                    self._render_button(
+                        style["label"],
+                        style["bg"],
+                        style["fg"],
                         border_color=border,
-                    )
+                    ),
                 )
             else:
                 self.deck.set_key_image(
-                    i, self._render_button(
-                        "", COLOR_BG_NAV_EMPTY, border_color=border,
-                    )
+                    key,
+                    self._render_button("", COLOR_BG_NAV_EMPTY, border_color=border),
                 )
 
     # ─── Key Press Handling ──────────────────────────────────────────
 
     def _on_key_change(self, deck, key, pressed):
-        """Stream Deck callback — fires on both press and release.
-        Grid mode terminal keys use press/release timing for hold detection:
-          tap (<0.5s)  → normal behavior (activate / enter nav)
-          hold (>=0.5s) → activate window + trigger Whisprflow
-        Enter key and Nav mode keys fire immediately on press."""
         with self._lock:
             self._handle_key(key, pressed)
 
     def _handle_key(self, key, pressed):
-        """Process a key event (called under self._lock)."""
-        if self.mode == MODE_GRID:
-            # Enter key fires immediately on press (no hold behavior)
-            if key == ENTER_KEY_INDEX:
-                if pressed:
-                    self._send_key("Return")
-                return
-
-            if key >= DECK_TERMINAL_SLOTS:
-                return
-
-            # Resolve merged keys to primary slot
-            terminal_name = self._key_to_terminal(key)
-            primary = self._terminal_to_active_slot(terminal_name) if terminal_name else key
-
-            if pressed:
-                self._key_press_time[key] = time.time()
-            else:
-                press_time = self._key_press_time.pop(key, None)
-                if press_time is None:
-                    return
-                held = time.time() - press_time
-                if held >= self.config["hold_threshold"]:
-                    # Long press → activate window + Whisprflow
-                    if primary != self.active_slot:
-                        self._activate_slot(key)
-                        self._update_all_buttons()
-                    self._trigger_mic()
-                else:
-                    # Short tap → normal grid behavior
-                    self._handle_grid_key(primary)
-        else:
+        if self.mode == MODE_NAV:
             if pressed:
                 self._handle_nav_key(key)
+            return
 
-    def _handle_grid_key(self, key):
-        # Enter and out-of-range keys are handled in _on_key_change
-        if key == self.active_slot:
-            # Already active (amber) → enter Nav Mode
+        if not self._key_is_label(key):
+            return
+
+        session = self._key_to_session(key)
+        if session is None:
+            return
+
+        if pressed:
+            self._key_press_time[key] = time.time()
+            return
+
+        press_time = self._key_press_time.pop(key, None)
+        if press_time is None:
+            return
+
+        held = time.time() - press_time
+        if held >= self.config.get("hold_threshold", HOLD_THRESHOLD_SEC):
+            self._activate_session(session)
+            self._update_all_buttons()
+            self._trigger_mic()
+            return
+
+        self._handle_row_key(session)
+
+    def _handle_row_key(self, session):
+        label_key = self._session_label_key(session)
+
+        if self.slot_status.get(label_key) == "permission":
+            self._approve_permission(session)
+            return
+
+        if label_key == self.active_slot:
+            self._activate_session(session)
             self.mode = MODE_NAV
             self._update_all_buttons()
-        else:
-            # Different window → activate it
-            self._activate_slot(key)
+            return
+
+        if self._activate_session(session):
             self._update_all_buttons()
 
     def _handle_nav_key(self, key):
@@ -1640,83 +1322,68 @@ end tell
         kind, value = action
 
         if kind == "back":
-            # Return to grid mode
-            self.mode = MODE_GRID
+            self.mode = MODE_ROW
             self._update_all_buttons()
-
         elif kind == "num":
             self._send_key(value)
-
         elif kind == "arrow":
             self._send_key(value)
-
         elif kind == "whisprflow":
             self._trigger_mic()
-
         elif kind == "enter":
             self._send_key("Return")
-            # Stay in nav mode — user hits BACK when done.
-            # This supports multi-question flows naturally.
 
     # ─── Active Window Polling ───────────────────────────────────────
 
     def _poll_active_loop(self):
-        """Background thread: sync active_slot and Claude status with the grid."""
         consecutive_errors = 0
         while self.running:
             try:
                 with self._lock:
-                    if self.mode == MODE_GRID:
+                    if self.mode == MODE_ROW:
                         needs_redraw = False
+                        now = time.time()
 
-                        # Periodically refresh TTY map so new/changed terminals get picked up
-                        now_tty = time.time()
-                        if now_tty - self._last_tty_refresh >= TTY_MAP_REFRESH_SEC:
-                            old_cwd = dict(self.slot_cwd)
+                        if now - self._last_tty_refresh >= TTY_MAP_REFRESH_SEC:
+                            old_ttys = dict(self.slot_tty)
+                            old_cwds = dict(self.slot_cwd)
                             self._build_tty_map()
-                            self._refresh_controller_win_id()
-                            self._last_tty_refresh = now_tty
-                            if self.slot_cwd != old_cwd:
-                                self._update_overlay()
+                            self._last_tty_refresh = now
+                            if self.slot_tty != old_ttys or self.slot_cwd != old_cwds:
                                 needs_redraw = True
 
-                        # Snap-to-grid: detect dragged windows and snap them
-                        if self.config["snap_enabled"] and self._check_snap_to_grid():
-                            needs_redraw = True
-
-                        # Check frontmost window
                         slot = self._get_frontmost_slot()
                         if slot != self.active_slot:
-                            self.active_slot = slot  # None when non-terminal is frontmost
-                            self._update_overlay()
+                            self.active_slot = slot
                             needs_redraw = True
 
-                        # Fast CWD refresh for active slot only
-                        if self.active_slot is not None and now_tty - self._last_active_cwd_check >= ACTIVE_CWD_REFRESH_SEC:
+                        if (
+                            self.active_slot is not None
+                            and now - self._last_active_cwd_check >= ACTIVE_CWD_REFRESH_SEC
+                        ):
                             tty = self.slot_tty.get(self.active_slot)
                             if tty:
                                 cwd = self._resolve_tty_cwd(tty)
                                 old_cwd = self.slot_cwd.get(self.active_slot)
                                 if cwd and cwd != old_cwd:
                                     self.slot_cwd[self.active_slot] = cwd
-                                    self._update_overlay()
                                     needs_redraw = True
-                            self._last_active_cwd_check = now_tty
+                            self._last_active_cwd_check = now
 
-                        # Read Claude Code status from hook files
                         old_status = dict(self.slot_status)
+                        old_tool_info = dict(self.slot_tool_info)
                         self._read_status_files()
-                        if self.slot_status != old_status:
+                        if self.slot_status != old_status or self.slot_tool_info != old_tool_info:
                             needs_redraw = True
 
-                        # Toggle blink phase for permission (red) slots
-                        now = time.time()
                         if now - self._last_blink_toggle >= BLINK_INTERVAL:
                             self.blink_on = not self.blink_on
                             self._last_blink_toggle = now
-                            # Only redraw for blink if any slot is in permission state
                             if "permission" in self.slot_status.values():
                                 needs_redraw = True
+
+                        if self._advance_scroll_offsets():
+                            needs_redraw = True
 
                         if needs_redraw:
                             self._update_all_buttons()
@@ -1726,8 +1393,14 @@ end tell
                 consecutive_errors += 1
                 if consecutive_errors <= 10 or consecutive_errors % 100 == 0:
                     level = logging.ERROR if consecutive_errors >= 10 else logging.WARNING
-                    logger.log(level, "Poll loop error (consecutive: %d)", consecutive_errors, exc_info=True)
-            time.sleep(self.config["poll_interval"])
+                    logger.log(
+                        level,
+                        "Poll loop error (consecutive: %d)",
+                        consecutive_errors,
+                        exc_info=True,
+                    )
+
+            time.sleep(self.config.get("poll_interval", POLL_INTERVAL))
 
     # ─── REPL Commands ────────────────────────────────────────────────
 
@@ -1740,25 +1413,16 @@ end tell
 
         if cmd == "help":
             print("━━━ Commands ━━━")
-            print("  tile                  Re-arrange windows into grid")
             print("  brightness <0-100>    Set Stream Deck brightness")
-            print("  hold <seconds>        Set hold threshold for Whisprflow (default 0.5)")
-            print("  poll <seconds>        Set poll interval (default 0.2)")
-            print("  snap <on|off>         Toggle snap-to-grid")
-            print("  mic <fn|command>      Set MIC key action (fn = Whisprflow, or shell command)")
-            print("  mic learn             Press a key to capture it as the MIC action")
-            print(f"  layout <name>         Set layout ({', '.join(LAYOUT_NAMES)})")
+            print("  hold <seconds>        Set hold threshold for Whisprflow")
+            print("  poll <seconds>        Set poll interval")
+            print("  mic <fn|command>      Set MIC action")
+            print("  mic learn             Capture the next keystroke as MIC")
             print("  settings              Open settings in browser")
             print("  quit                  Exit")
+            return
 
-        elif cmd == "tile":
-            self.tile_windows()
-            time.sleep(0.3)
-            self._build_tty_map()
-            self._update_overlay()
-            self._update_all_buttons()
-
-        elif cmd == "brightness":
+        if cmd == "brightness":
             if arg is None:
                 print(f"  brightness = {self.config['brightness']}")
                 return
@@ -1770,11 +1434,13 @@ end tell
                 print("  Usage: brightness <0-100>")
                 return
             self.config["brightness"] = val
-            self.deck.set_brightness(val)
+            if self.deck:
+                self.deck.set_brightness(val)
             self._save_config()
             print(f"  brightness → {val}")
+            return
 
-        elif cmd == "hold":
+        if cmd == "hold":
             if arg is None:
                 print(f"  hold = {self.config['hold_threshold']}s")
                 return
@@ -1783,13 +1449,14 @@ end tell
                 if val <= 0:
                     raise ValueError
             except ValueError:
-                print("  Usage: hold <seconds>  (e.g. hold 0.3)")
+                print("  Usage: hold <seconds>")
                 return
             self.config["hold_threshold"] = val
             self._save_config()
             print(f"  hold → {val}s")
+            return
 
-        elif cmd == "poll":
+        if cmd == "poll":
             if arg is None:
                 print(f"  poll = {self.config['poll_interval']}s")
                 return
@@ -1798,35 +1465,20 @@ end tell
                 if val <= 0:
                     raise ValueError
             except ValueError:
-                print("  Usage: poll <seconds>  (e.g. poll 0.1)")
+                print("  Usage: poll <seconds>")
                 return
             self.config["poll_interval"] = val
             self._save_config()
             print(f"  poll → {val}s")
+            return
 
-        elif cmd == "snap":
+        if cmd == "mic":
             if arg is None:
-                state = "on" if self.config["snap_enabled"] else "off"
-                print(f"  snap = {state}")
-                return
-            if arg.lower() in ("on", "true", "1", "yes"):
-                self.config["snap_enabled"] = True
-            elif arg.lower() in ("off", "false", "0", "no"):
-                self.config["snap_enabled"] = False
-            else:
-                print("  Usage: snap <on|off>")
-                return
-            self._save_config()
-            state = "on" if self.config["snap_enabled"] else "off"
-            print(f"  snap → {state}")
-
-        elif cmd == "mic":
-            if arg is None:
-                mc = self.config["mic_command"]
-                if isinstance(mc, dict):
-                    print(f"  mic = {mc.get('label', mc)}")
+                mic_cmd = self.config["mic_command"]
+                if isinstance(mic_cmd, dict):
+                    print(f"  mic = {mic_cmd.get('label', mic_cmd)}")
                 else:
-                    print(f"  mic = {mc}")
+                    print(f"  mic = {mic_cmd}")
                 return
             if arg.lower() == "learn":
                 self._learn_keystroke()
@@ -1834,46 +1486,37 @@ end tell
             self.config["mic_command"] = arg
             self._save_config()
             print(f"  mic → {arg}")
+            return
 
-        elif cmd == "layout":
-            if arg is None:
-                print(f"  layout = {self.config.get('layout', 'default')}")
-                print(f"  available: {', '.join(LAYOUT_NAMES)}")
-                return
-            name = arg.lower().strip()
-            if name not in LAYOUTS:
-                print(f"  Unknown layout: {name}")
-                print(f"  available: {', '.join(LAYOUT_NAMES)}")
-                return
-            self.config["layout"] = name
-            self._save_config()
-            print(f"  layout → {name}")
-            self.tile_windows()
-            time.sleep(0.3)
-            self._build_tty_map()
-            self._update_overlay()
-            self._update_all_buttons()
-
-        elif cmd == "settings":
-            if hasattr(self, '_settings_port') and self._settings_port:
+        if cmd == "settings":
+            if self._settings_port:
                 import webbrowser
+
                 webbrowser.open(f"http://127.0.0.1:{self._settings_port}/")
-                print(f"  Opened settings in browser")
+                print("  Opened settings in browser")
             else:
                 print("━━━ Settings ━━━")
-                for k, v in self.config.items():
-                    print(f"  {k} = {v}")
+                for key, value in self.config.items():
+                    print(f"  {key} = {value}")
+            return
 
-        elif cmd in ("quit", "exit", "q"):
+        if cmd in ("quit", "exit", "q"):
             raise SystemExit
 
-        else:
-            print(f"  Unknown command: {cmd} (type 'help' for commands)")
+        print(f"  Unknown command: {cmd} (type 'help' for commands)")
 
     # ─── Main Entry Point ────────────────────────────────────────────
 
+    def _clear_status_dir(self):
+        os.makedirs(STATUS_DIR, exist_ok=True)
+        for f in Path(STATUS_DIR).iterdir():
+            try:
+                f.unlink()
+            except PermissionError:
+                logger.debug("Could not unlink %s, falling back to rm", f)
+                subprocess.run(["rm", "-f", str(f)], capture_output=True)
+
     def run(self):
-        # Check Accessibility permissions before anything else
         self._check_accessibility()
 
         devices = DeviceManager().enumerate()
@@ -1883,8 +1526,6 @@ end tell
             print("Also verify: brew install hidapi && pip install streamdeck")
             sys.exit(1)
 
-        # The Stream Deck Original exposes multiple HID interfaces.
-        # Try each until one opens successfully.
         logger.info("Found %d HID interface(s), attempting to open...", len(devices))
         for i, dev in enumerate(devices):
             try:
@@ -1905,70 +1546,38 @@ end tell
 
         key_count = self.deck.key_count()
         logger.info("Connected: %s (%d keys)", self.deck.deck_type(), key_count)
-
         if key_count != TOTAL_KEYS:
-            logger.warning("Expected %d keys but deck has %d — layout may not work correctly", TOTAL_KEYS, key_count)
+            logger.warning(
+                "Expected %d keys but deck has %d — row layout may not work correctly",
+                TOTAL_KEYS,
+                key_count,
+            )
             print(f"Warning: this script expects {TOTAL_KEYS} keys but your deck has {key_count}.")
-            print("The key layout may not work correctly.")
 
-        # Tile windows into grid
-        logger.info("Tiling terminal windows...")
-        self.tile_windows()
-        time.sleep(0.3)
-
-        # Seed snap detector with current positions
-        for w in self._get_terminal_windows():
-            self._prev_win_positions[w["id"]] = (w["x"], w["y"], w["w"], w["h"])
-
-        # Build TTY mapping for Claude status hooks
         self._build_tty_map()
-
-        # Ensure status directory exists; clear stale files from previous runs
-        os.makedirs(STATUS_DIR, exist_ok=True)
-        for f in Path(STATUS_DIR).iterdir():
-            try:
-                f.unlink()
-            except PermissionError:
-                logger.debug("Could not unlink %s, falling back to rm", f)
-                subprocess.run(["rm", "-f", str(f)], capture_output=True)
-
-        # Initial render
+        self._clear_status_dir()
         self._update_all_buttons()
-
-        # Register key callback
         self.deck.set_key_callback(self._on_key_change)
 
-        # Start screen border overlay
-        logger.info("Starting screen overlay...")
-        self._start_overlay()
-
-        # Start settings server
-        self._settings_port = None
         settings_port = self._start_settings_server()
 
-        # Start background poller for active window sync
         self.running = True
         poller = threading.Thread(target=self._poll_active_loop, daemon=True)
         poller.start()
 
-        # Amber ANSI color: 256-color mode (widely supported)
-        A = "\033[38;5;214m"
-        D = "\033[2m"  # dim
-        R = "\033[0m"
-        print(f"""
-{A}  ██████╗██╗      █████╗ ██╗    ██╗{R}
-{A} ██╔════╝██║     ██╔══██╗██║    ██║{R}
-{A} ██║     ██║     ███████║██║ █╗ ██║{R}
-{A} ██║     ██║     ██╔══██║██║███╗██║{R}
-{A} ╚██████╗███████╗██║  ██║╚███╔███╔╝{R}
-{A}  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝{R}
-{A} ██████╗ ███████╗ ██████╗██╗  ██╗{R}
-{A} ██╔══██╗██╔════╝██╔════╝██║ ██╔╝{R}
-{A} ██║  ██║█████╗  ██║     █████╔╝{R}
-{A} ██║  ██║██╔══╝  ██║     ██╔═██╗{R}
-{A} ██████╔╝███████╗╚██████╗██║  ██╗{R}
-{A} ╚═════╝ ╚══════╝ ╚═════╝╚═╝  ╚═╝{R}  {D}v{__version__}{R}
-""")
+        amber = "\033[38;5;214m"
+        dim = "\033[2m"
+        reset = "\033[0m"
+        print(
+            f"""
+{amber}  ██████╗██╗      █████╗ ██╗    ██╗{reset}
+{amber} ██╔════╝██║     ██╔══██╗██║    ██║{reset}
+{amber} ██║     ██║     ███████║██║ █╗ ██║{reset}
+{amber} ██║     ██║     ██╔══██║██║███╗██║{reset}
+{amber} ╚██████╗███████╗██║  ██║╚███╔███╔╝{reset}
+{amber}  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝{reset}  {dim}v{__version__}{reset}
+"""
+        )
         print("  Type 'help' for commands")
         if settings_port:
             print(f"  Settings UI: http://127.0.0.1:{settings_port}")
@@ -1983,17 +1592,15 @@ end tell
         finally:
             print("\nShutting down...")
             self.running = False
-            self._stop_overlay()
-            self.deck.reset()
-            self.deck.close()
+            if self.deck:
+                self.deck.reset()
+                self.deck.close()
             print("Done.")
 
-    # ─── Settings HTTP Server ─────────────────────────────────────────
+    # ─── Settings HTTP Server ────────────────────────────────────────
 
     def _start_settings_server(self):
-        """Start a local HTTP server for the browser-based settings UI.
-        Returns the port number, or None if it couldn't start."""
-        from http.server import HTTPServer, BaseHTTPRequestHandler
+        from http.server import BaseHTTPRequestHandler, HTTPServer
         from urllib.parse import urlparse
 
         controller_ref = self
@@ -2016,11 +1623,13 @@ end tell
                     self._json_response(controller_ref.config)
                 elif path == "/api/status":
                     if controller_ref.running and controller_ref.deck:
-                        self._json_response({
-                            "running": True,
-                            "deck": controller_ref.deck.deck_type(),
-                            "terminals": len(controller_ref.slot_tty),
-                        })
+                        self._json_response(
+                            {
+                                "running": True,
+                                "deck": controller_ref.deck.deck_type(),
+                                "sessions": len(controller_ref.slot_tty),
+                            }
+                        )
                     else:
                         self._json_response({"running": False})
                 else:
@@ -2030,46 +1639,46 @@ end tell
                 path = urlparse(self.path).path
                 content_len = int(self.headers.get("Content-Length", 0))
                 body = self.rfile.read(content_len) if content_len else b""
+
                 if path == "/api/settings":
                     try:
                         new_config = json.loads(body)
                     except json.JSONDecodeError:
                         self._json_response({"ok": False, "error": "Invalid JSON"}, 400)
                         return
-                    try:
-                        tmp = CONFIG_FILE + ".tmp"
-                        with open(tmp, "w") as f:
-                            json.dump(new_config, f, indent=2)
-                            f.write("\n")
-                        os.rename(tmp, CONFIG_FILE)
-                    except Exception as e:
-                        logger.error("Settings API: config save failed", exc_info=True)
-                        self._json_response({"ok": False, "error": str(e)}, 500)
-                        return
-                    old_layout = controller_ref.config.get("layout")
-                    controller_ref.config.update(new_config)
+
+                    old_session_map = dict(controller_ref.config.get("session_map", {}))
+                    controller_ref._apply_config_update(new_config)
+
                     if controller_ref.deck and controller_ref.running:
                         try:
-                            controller_ref.deck.set_brightness(new_config.get("brightness", 80))
+                            controller_ref.deck.set_brightness(
+                                controller_ref.config.get("brightness", BRIGHTNESS)
+                            )
                         except Exception:
                             logger.warning("Failed to set brightness via settings API", exc_info=True)
-                        # Re-tile if layout changed
-                        if new_config.get("layout") != old_layout:
-                            controller_ref.tile_windows()
-                            time.sleep(0.3)
+
+                        if controller_ref.config.get("session_map", {}) != old_session_map:
                             controller_ref._build_tty_map()
-                        controller_ref._update_overlay()
+
                         controller_ref._update_all_buttons()
+
                     self._json_response({"ok": True})
-                elif path == "/api/hooks":
+                    return
+
+                if path == "/api/hooks":
                     result = subprocess.run(
                         [sys.executable, os.path.join(SCRIPT_DIR, "install_hooks.py")],
-                        input="y\n", capture_output=True, text=True, timeout=10,
+                        input="y\n",
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
                     )
                     output = (result.stdout + result.stderr).strip()
                     self._json_response({"ok": result.returncode == 0, "output": output})
-                else:
-                    self.send_error(404)
+                    return
+
+                self.send_error(404)
 
             def _json_response(self, data, code=200):
                 body = json.dumps(data).encode()
@@ -2091,23 +1700,10 @@ end tell
         return None
 
 
-# ═══════════════════════════════════════════════════════════════════════
-
 if __name__ == "__main__":
     if "--help" in sys.argv or "-h" in sys.argv:
         print(__doc__)
         print("Usage: python main.py")
         print()
-        print("Runtime commands (type while running):")
-        print("  tile                  Re-arrange windows into grid")
-        print("  brightness <0-100>    Set Stream Deck brightness")
-        print("  hold <seconds>        Set hold threshold for MIC trigger")
-        print("  poll <seconds>        Set poll interval")
-        print("  snap <on|off>         Toggle snap-to-grid")
-        print("  mic <fn|command>      Set MIC key action")
-        print("  mic learn             Capture a keystroke for MIC key")
-        print("  settings              Open settings in browser")
-        print("  help                  Show all commands")
-        print("  quit                  Exit")
-        sys.exit(0)
-    DeckController().run()
+    else:
+        DeckController().run()

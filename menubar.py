@@ -6,70 +6,91 @@ Provides:
   - Start/Stop Stream Deck controller
   - Status indicator in menu bar
   - Settings window (local HTTP server + browser)
-  - Auto-tile on start
+  - Session-map rescan
   - Install/update hooks
 """
 
-import threading
 import json
 import os
-import sys
-import time
 import subprocess
+import sys
+import threading
 import webbrowser
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
 import rumps
 
-from main import DeckController, CONFIG_FILE, CONFIG_DEFAULTS
+from main import BRIGHTNESS, CONFIG_DEFAULTS, CONFIG_FILE, DeckController
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_HTML = os.path.join(SCRIPT_DIR, "settings.html")
 
-# Global ref so the HTTP handler can reach the app
 _app_instance = None
 
 
-class SettingsHandler(BaseHTTPRequestHandler):
-    """Tiny HTTP handler for the settings page."""
+def _normalize_saved_config(raw):
+    config = dict(CONFIG_DEFAULTS)
+    config["colors"] = dict(CONFIG_DEFAULTS["colors"])
+    config["session_map"] = dict(CONFIG_DEFAULTS["session_map"])
 
+    if not isinstance(raw, dict):
+        return config
+
+    colors = raw.get("colors", {})
+    session_map = raw.get("session_map", {})
+    for key, value in raw.items():
+        if key in ("colors", "session_map"):
+            continue
+        config[key] = value
+    if isinstance(colors, dict):
+        config["colors"].update(colors)
+    if isinstance(session_map, dict):
+        config["session_map"].update(session_map)
+    return config
+
+
+class SettingsHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        pass  # silence request logging
+        pass
 
     def do_GET(self):
         path = urlparse(self.path).path
-        if path == "/" or path == "/settings":
+        if path in ("/", "/settings"):
             with open(SETTINGS_HTML, "rb") as f:
                 content = f.read()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(content)
+            return
 
-        elif path == "/api/settings":
-            config = dict(CONFIG_DEFAULTS)
+        if path == "/api/settings":
+            config = _normalize_saved_config({})
             try:
                 with open(CONFIG_FILE) as f:
-                    config.update(json.load(f))
+                    config = _normalize_saved_config(json.load(f))
             except (FileNotFoundError, json.JSONDecodeError):
                 pass
             self._json_response(config)
+            return
 
-        elif path == "/api/status":
+        if path == "/api/status":
             app = _app_instance
             ctrl = app.controller if app else None
             if ctrl and ctrl.running:
-                self._json_response({
-                    "running": True,
-                    "deck": ctrl.deck.deck_type() if ctrl.deck else "unknown",
-                    "terminals": len(ctrl.slot_tty),
-                })
+                self._json_response(
+                    {
+                        "running": True,
+                        "deck": ctrl.deck.deck_type() if ctrl.deck else "unknown",
+                        "sessions": len(ctrl.slot_tty),
+                    }
+                )
             else:
                 self._json_response({"running": False})
+            return
 
-        else:
-            self.send_error(404)
+        self.send_error(404)
 
     def do_POST(self):
         path = urlparse(self.path).path
@@ -83,40 +104,48 @@ class SettingsHandler(BaseHTTPRequestHandler):
                 self._json_response({"ok": False, "error": "Invalid JSON"}, 400)
                 return
 
-            # Write config atomically
-            try:
-                tmp = CONFIG_FILE + ".tmp"
-                with open(tmp, "w") as f:
-                    json.dump(new_config, f, indent=2)
-                    f.write("\n")
-                os.rename(tmp, CONFIG_FILE)
-            except Exception as e:
-                self._json_response({"ok": False, "error": str(e)}, 500)
-                return
-
-            # Apply to running controller
             app = _app_instance
             ctrl = app.controller if app else None
-            if ctrl and ctrl.running:
-                ctrl.config.update(new_config)
-                if ctrl.deck:
-                    try:
-                        ctrl.deck.set_brightness(new_config.get("brightness", 80))
-                    except Exception:
-                        pass
+            if ctrl:
+                old_session_map = dict(ctrl.config.get("session_map", {}))
+                ctrl._apply_config_update(new_config)
+                if ctrl.running:
+                    if ctrl.deck:
+                        try:
+                            ctrl.deck.set_brightness(ctrl.config.get("brightness", BRIGHTNESS))
+                        except Exception:
+                            pass
+                    if ctrl.config.get("session_map", {}) != old_session_map:
+                        ctrl._build_tty_map()
+                    ctrl._update_all_buttons()
+            else:
+                config = _normalize_saved_config({})
+                try:
+                    with open(CONFIG_FILE) as f:
+                        config = _normalize_saved_config(json.load(f))
+                except (FileNotFoundError, json.JSONDecodeError):
+                    pass
+                config = _normalize_saved_config({**config, **new_config})
+                with open(CONFIG_FILE, "w") as f:
+                    json.dump(config, f, indent=2)
+                    f.write("\n")
 
             self._json_response({"ok": True})
+            return
 
-        elif path == "/api/hooks":
+        if path == "/api/hooks":
             result = subprocess.run(
                 [sys.executable, os.path.join(SCRIPT_DIR, "install_hooks.py")],
-                input="y\n", capture_output=True, text=True, timeout=10,
+                input="y\n",
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             output = (result.stdout + result.stderr).strip()
             self._json_response({"ok": result.returncode == 0, "output": output})
+            return
 
-        else:
-            self.send_error(404)
+        self.send_error(404)
 
     def _json_response(self, data, code=200):
         body = json.dumps(data).encode()
@@ -129,12 +158,7 @@ class SettingsHandler(BaseHTTPRequestHandler):
 
 class ClawDeckApp(rumps.App):
     def __init__(self):
-        super().__init__(
-            "ClawDeck",
-            icon=None,
-            title="\U0001f99e",
-            quit_button=None,
-        )
+        super().__init__("ClawDeck", icon=None, title="\U0001f99e", quit_button=None)
         self.controller = None
         self._controller_thread = None
         self._http_server = None
@@ -142,7 +166,7 @@ class ClawDeckApp(rumps.App):
 
         self.menu = [
             rumps.MenuItem("Start", callback=self.toggle_controller),
-            rumps.MenuItem("Tile Windows", callback=self.tile_windows),
+            rumps.MenuItem("Rescan Sessions", callback=self.rescan_sessions),
             None,
             rumps.MenuItem("Settings...", callback=self.open_settings),
             rumps.MenuItem("Install Hooks", callback=self.install_hooks),
@@ -150,12 +174,9 @@ class ClawDeckApp(rumps.App):
             rumps.MenuItem("Quit ClawDeck", callback=self.quit_app),
         ]
 
-        # Start the settings HTTP server in background
         self._start_http_server()
 
     def _start_http_server(self):
-        """Start a local HTTP server for the settings page."""
-        # Find a free port
         for port in range(19830, 19850):
             try:
                 server = HTTPServer(("127.0.0.1", port), SettingsHandler)
@@ -176,17 +197,18 @@ class ClawDeckApp(rumps.App):
             sender.title = "Stop"
 
     def _start_controller(self):
-        """Start DeckController in a background thread."""
         def run():
             try:
                 self.controller = DeckController()
                 self.controller._check_accessibility()
 
                 from StreamDeck.DeviceManager import DeviceManager
+
                 devices = DeviceManager().enumerate()
                 if not devices:
                     rumps.notification(
-                        "ClawDeck", "No Stream Deck Found",
+                        "ClawDeck",
+                        "No Stream Deck Found",
                         "Make sure your Stream Deck is plugged in.",
                     )
                     self.controller = None
@@ -202,7 +224,8 @@ class ClawDeckApp(rumps.App):
                         continue
                 else:
                     rumps.notification(
-                        "ClawDeck", "Connection Failed",
+                        "ClawDeck",
+                        "Connection Failed",
                         "Could not open Stream Deck. Try unplugging and reconnecting.",
                     )
                     self.controller = None
@@ -212,26 +235,17 @@ class ClawDeckApp(rumps.App):
                 ctrl = self.controller
                 ctrl.deck.reset()
                 ctrl.deck.set_brightness(ctrl.config["brightness"])
-                ctrl.tile_windows()
-                time.sleep(0.3)
-
-                for w in ctrl._get_terminal_windows():
-                    ctrl._prev_win_positions[w["id"]] = (w["x"], w["y"], w["w"], w["h"])
-
                 ctrl._build_tty_map()
-                os.makedirs("/tmp/deck-status", exist_ok=True)
-
+                ctrl._clear_status_dir()
                 ctrl._update_all_buttons()
                 ctrl.deck.set_key_callback(ctrl._on_key_change)
-                ctrl._start_overlay()
-
                 ctrl.running = True
+
                 self.title = "\U0001f99e\u2713"
-
+                self._update_menu_state(True)
                 ctrl._poll_active_loop()
-
-            except Exception as e:
-                rumps.notification("ClawDeck", "Error", str(e))
+            except Exception as exc:
+                rumps.notification("ClawDeck", "Error", str(exc))
                 self.controller = None
                 self._update_menu_state(False)
 
@@ -241,7 +255,6 @@ class ClawDeckApp(rumps.App):
     def _stop_controller(self):
         if self.controller:
             self.controller.running = False
-            self.controller._stop_overlay()
             if self.controller.deck:
                 try:
                     self.controller.deck.reset()
@@ -249,44 +262,50 @@ class ClawDeckApp(rumps.App):
                 except Exception:
                     pass
             self.controller = None
+        self._update_menu_state(False)
 
     def _update_menu_state(self, running):
         try:
-            start_item = self.menu["Start"]
+            item = self.menu["Start"]
         except KeyError:
             try:
-                start_item = self.menu["Stop"]
+                item = self.menu["Stop"]
             except KeyError:
                 return
-        start_item.title = "Stop" if running else "Start"
+        item.title = "Stop" if running else "Start"
         self.title = "\U0001f99e\u2713" if running else "\U0001f99e"
 
-    def tile_windows(self, _):
+    def rescan_sessions(self, _):
         if self.controller and self.controller.running:
-            self.controller.tile_windows()
-            time.sleep(0.3)
             self.controller._build_tty_map()
-            self.controller._update_overlay()
             self.controller._update_all_buttons()
         else:
             rumps.notification("ClawDeck", "", "Start the controller first.")
 
     def open_settings(self, _):
-        """Open settings page in the default browser."""
         if self._http_port:
             webbrowser.open(f"http://127.0.0.1:{self._http_port}/")
 
     def install_hooks(self, _):
         result = subprocess.run(
             [sys.executable, os.path.join(SCRIPT_DIR, "install_hooks.py")],
-            input="y\n", capture_output=True, text=True, timeout=10,
+            input="y\n",
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
-            rumps.notification("ClawDeck", "Hooks Installed",
-                               "Restart Claude Code sessions to pick up new hooks.")
+            rumps.notification(
+                "ClawDeck",
+                "Hooks Installed",
+                "Restart Claude Code sessions to pick up new hooks.",
+            )
         else:
-            rumps.notification("ClawDeck", "Hook Install Failed",
-                               result.stderr[:200] if result.stderr else "Unknown error")
+            rumps.notification(
+                "ClawDeck",
+                "Hook Install Failed",
+                result.stderr[:200] if result.stderr else "Unknown error",
+            )
 
     def quit_app(self, _):
         self._stop_controller()
