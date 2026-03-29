@@ -150,8 +150,8 @@ def test_activate_session_matches_pattern_and_updates_active_slot(controller, su
     assert kwargs == {"capture_output": True, "text": True, "timeout": 10}
 
 
-def test_activate_session_returns_false_when_session_unmapped(controller):
-    controller.config["session_map"]["T1"] = ""
+def test_activate_session_returns_false_when_blank_entry_is_intentionally_unmapped(controller):
+    controller.config["session_map"] = {"T1": "", "T2": "alpha", "T3": ""}
 
     with patch("main.subprocess.run") as run_mock:
         assert controller._activate_session("T1") is False

@@ -29,6 +29,29 @@ def test_build_tty_map_ignores_unmatched_patterns(controller):
     assert controller.slot_cwd == {10: "/tmp/ttys004"}
 
 
+def test_build_tty_map_falls_back_to_literal_session_names_when_unconfigured(controller):
+    controller.config["session_map"] = {"T1": "", "T2": "", "T3": ""}
+    sessions = [
+        {"name": "Claude T1", "tty": "ttys001"},
+        {"name": "Worker T3", "tty": "ttys003"},
+    ]
+
+    with patch.object(controller, "_get_iterm_sessions", return_value=sessions):
+        with patch.object(controller, "_resolve_tty_cwd", side_effect=lambda tty: f"/tmp/{tty}"):
+            controller._build_tty_map()
+
+    assert controller.slot_tty == {0: "ttys001", 10: "ttys003"}
+    assert controller.slot_cwd == {0: "/tmp/ttys001", 10: "/tmp/ttys003"}
+
+
+def test_match_session_name_falls_back_to_literal_names_only_when_map_is_blank(controller):
+    controller.config["session_map"] = {"T1": "", "T2": "", "T3": ""}
+    assert controller._match_session_name("Claude T1") == "T1"
+
+    controller.config["session_map"] = {"T1": "alpha", "T2": "", "T3": ""}
+    assert controller._match_session_name("Claude T2") is None
+
+
 def test_approve_permission_writes_yes_to_tty(controller):
     controller.slot_tty = {0: "ttys009"}
 

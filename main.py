@@ -435,7 +435,18 @@ class DeckController:
         return col - 1 if col else -1
 
     def _session_pattern(self, session):
-        return str(self.config.get("session_map", {}).get(session, "")).strip()
+        session_map = self.config.get("session_map", {})
+        pattern = str(session_map.get(session, "")).strip()
+        if pattern:
+            return pattern
+
+        # Fresh installs start with an empty session_map. In that case,
+        # fall back to literal T1/T2/T3 matching so a plainly named iTerm
+        # session works without extra setup. Once any custom mapping exists,
+        # blank entries remain intentionally unmapped.
+        if any(str(session_map.get(name, "")).strip() for name in SESSIONS):
+            return ""
+        return session
 
     def _match_session_name(self, session_name):
         if not session_name:
