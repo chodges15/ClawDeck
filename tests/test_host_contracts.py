@@ -145,6 +145,8 @@ def test_activate_session_matches_pattern_and_updates_active_slot(controller, su
     assert args[0][:2] == ["osascript", "-e"]
     assert 'tell application "iTerm2"' in args[0][2]
     assert 'set matchPattern to "Alpha Worker"' in args[0][2]
+    assert "tell t to select" in args[0][2]
+    assert "reveal hotkey window" in args[0][2]
     assert kwargs == {"capture_output": True, "text": True, "timeout": 10}
 
 

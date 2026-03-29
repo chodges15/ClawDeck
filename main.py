@@ -666,18 +666,31 @@ tell application "{ITERM_APP_NAME}"
     if not running then return "not-running"
     repeat with w in windows
         repeat with t in tabs of w
+            set sessionName to missing value
             try
-                set s to current session of t
-                set sessionName to name of s
-                ignoring case
-                    if sessionName contains matchPattern then
-                        set current tab of w to t
-                        set index of w to 1
+                set sessionName to name of current session of t
+            end try
+            if sessionName is missing value then
+                set sessionName to ""
+            end if
+            ignoring case
+                if sessionName contains matchPattern then
+                    try
+                        tell t to select
+                        tell w
+                            if is hotkey window then
+                                reveal hotkey window
+                            else
+                                select
+                            end if
+                        end tell
                         activate
                         return "ok"
-                    end if
-                end ignoring
-            end try
+                    on error errMsg number errNum
+                        return "error " & errNum & ": " & errMsg
+                    end try
+                end if
+            end ignoring
         end repeat
     end repeat
     return "no-match"
@@ -694,7 +707,15 @@ end tell
             logger.warning("Failed to activate session %s", session, exc_info=True)
             return False
 
-        ok = result.returncode == 0 and result.stdout.strip() == "ok"
+        status = result.stdout.strip()
+        ok = result.returncode == 0 and status == "ok"
+        if not ok:
+            logger.warning(
+                "Failed to activate session %s: status=%r stderr=%r",
+                session,
+                status or None,
+                result.stderr.strip() or None,
+            )
         if ok:
             self.active_slot = self._session_label_key(session)
         return ok
