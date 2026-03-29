@@ -95,6 +95,22 @@ class DeckController:
         self.state.slot_cwd = value
 
     @property
+    def slot_hook_cwd(self):
+        return self.state.slot_hook_cwd
+
+    @slot_hook_cwd.setter
+    def slot_hook_cwd(self, value):
+        self.state.slot_hook_cwd = value
+
+    @property
+    def slot_branch(self):
+        return self.state.slot_branch
+
+    @slot_branch.setter
+    def slot_branch(self, value):
+        self.state.slot_branch = value
+
+    @property
     def slot_status(self):
         return self.state.slot_status
 
@@ -109,6 +125,14 @@ class DeckController:
     @slot_tool_info.setter
     def slot_tool_info(self, value):
         self.state.slot_tool_info = value
+
+    @property
+    def info_feedback(self):
+        return self.state.info_feedback
+
+    @info_feedback.setter
+    def info_feedback(self, value):
+        self.state.info_feedback = value
 
     @property
     def scroll_offsets(self):
@@ -279,9 +303,13 @@ class DeckController:
 
         self.state.slot_tty = tty_map
         self.state.slot_cwd = cwd_map
+        self.state.slot_branch = {}
 
     def _resolve_tty_cwd(self, tty_name):
         return self.host.resolve_tty_cwd(tty_name)
+
+    def _resolve_git_branch(self, path):
+        return self.host.resolve_git_branch(path)
 
     def _format_cwd(self, path):
         return self.renderer.format_cwd(self.config, path)
@@ -359,6 +387,63 @@ class DeckController:
                 changed = True
         return changed
 
+    def _row_status_label(self, status):
+        labels = {
+            "permission": "ASK",
+            "working": "RUN",
+            "idle": "IDLE",
+        }
+        return labels.get(status, "TTY")
+
+    def _row_status_subtitle(self, status):
+        subtitles = {
+            "permission": "Needs OK",
+            "working": "Active",
+            "idle": "At prompt",
+        }
+        return subtitles.get(status, "Ready")
+
+    def _row_tool_label(self, tool_info):
+        if not tool_info:
+            return "TTY"
+        tool_name = str(tool_info.get("tool_name") or "Tool").strip().upper()
+        return tool_name[:5] or "TOOL"
+
+    def _row_tool_subtitle(self, label_key, tool_info):
+        if tool_info:
+            summary = self._first_display_value(tool_info.get("tool_input"))
+            if summary:
+                return summary
+            tool_name = str(tool_info.get("tool_name") or "").strip()
+            if tool_name:
+                return tool_name
+        return self.state.slot_tty.get(label_key)
+
+    def _row_info_specs(self, label_key):
+        raw_cwd = self.state.slot_hook_cwd.get(label_key)
+        cwd = None
+        if raw_cwd and self.config.get("button_labels", True):
+            cwd = self._format_cwd(raw_cwd)
+
+        branch = self.state.slot_branch.get(label_key)
+
+        specs = [
+            {"label": "DIR", "subtitle": cwd or raw_cwd or "Unknown"},
+            {"label": "⎇", "subtitle": branch or "No repo"},
+            {"label": "DIFF", "subtitle": "review"},
+            {
+                "label": "▶",
+                "subtitle": "continue",
+            },
+        ]
+        for info_index, spec in enumerate(specs):
+            feedback = self.state.info_feedback.get((label_key, info_index))
+            if not feedback:
+                continue
+            spec["label"] = feedback["label"]
+            spec["subtitle"] = feedback["subtitle"]
+        return specs
+
     def _update_all_buttons(self):
         if self.state.mode == MODE_NAV:
             self._draw_nav_mode()
@@ -390,28 +475,15 @@ class DeckController:
                     )
                 continue
 
-            if status == "permission":
-                strip = self._ensure_scroll_strip(label_key)
-                offset = self.state.scroll_offsets.get(label_key, 0)
-                for button_idx, key in enumerate(info_keys):
-                    self.deck.set_key_image(
-                        key, self._render_scroll_button(strip, offset, button_idx)
-                    )
-                continue
-
-            subtitle = None
-            raw_cwd = self.state.slot_cwd.get(label_key)
-            if raw_cwd and self.config.get("button_labels", True):
-                subtitle = self._format_cwd(raw_cwd)
-
-            first_key = label_key + 1
-            self.deck.set_key_image(
-                first_key,
-                self._render_button("", bg=(0, 0, 0), fg=(255, 255, 255), subtitle=subtitle),
-            )
-            for key in range(first_key + 1, label_key + 5):
+            for key, spec in zip(info_keys, self._row_info_specs(label_key), strict=False):
                 self.deck.set_key_image(
-                    key, self._render_button("", bg=(0, 0, 0), fg=(255, 255, 255))
+                    key,
+                    self._render_button(
+                        spec["label"],
+                        bg=(0, 0, 0),
+                        fg=(255, 255, 255),
+                        subtitle=spec["subtitle"],
+                    ),
                 )
 
     def _get_nav_style(self, key):
@@ -455,6 +527,35 @@ class DeckController:
             return False
         return self.host.approve_permission(tty_name)
 
+    def _write_session_text(self, session, text):
+        label_key = session_label_key(session)
+        tty_name = self.state.slot_tty.get(label_key)
+        if not tty_name:
+            return False
+        return self.host.write_tty_text(tty_name, text)
+
+    def _open_vscode(self, path):
+        return self.host.open_vscode(path)
+
+    def _open_kaleidoscope_review(self, path):
+        return self.host.open_kaleidoscope_review(path)
+
+    def _set_info_feedback(self, label_key, info_index, label, subtitle, ttl=2.0):
+        self.state.info_feedback[(label_key, info_index)] = {
+            "label": label,
+            "subtitle": subtitle,
+            "expires_at": time.time() + ttl,
+        }
+
+    def _clear_expired_info_feedback(self, now=None):
+        now = time.time() if now is None else now
+        expired = [
+            key for key, value in self.state.info_feedback.items() if value.get("expires_at", 0) <= now
+        ]
+        for key in expired:
+            self.state.info_feedback.pop(key, None)
+        return bool(expired)
+
     def _apply_status_snapshot(self, snapshot):
         for slot in snapshot.clear_scroll_slots:
             self.state.scroll_offsets.pop(slot, None)
@@ -467,6 +568,13 @@ class DeckController:
             self.state.scroll_text.pop(slot, None)
 
         self.state.slot_status = snapshot.slot_status
+        self.state.slot_hook_cwd = snapshot.slot_hook_cwd
+        hook_branches = {}
+        for slot, cwd in snapshot.slot_hook_cwd.items():
+            branch = self._resolve_git_branch(cwd)
+            if branch:
+                hook_branches[slot] = branch
+        self.state.slot_branch = hook_branches
         self.state.slot_tool_info = snapshot.slot_tool_info
 
     def _on_key_change(self, deck, key, pressed):
@@ -479,11 +587,13 @@ class DeckController:
                 self._handle_nav_key(key)
             return
 
-        if not self._key_is_label(key):
-            return
-
         session = self._key_to_session(key)
         if session is None:
+            return
+
+        if not self._key_is_label(key):
+            if not pressed:
+                self._handle_info_key(session, self._key_info_index(key))
             return
 
         if pressed:
@@ -519,6 +629,35 @@ class DeckController:
         if self._activate_session(session):
             self._update_all_buttons()
 
+    def _handle_info_key(self, session, info_index):
+        if info_index == 0:
+            label_key = session_label_key(session)
+            path = self.state.slot_hook_cwd.get(label_key)
+            if not path:
+                return
+            self._open_vscode(path)
+            return
+        if info_index == 2:
+            label_key = session_label_key(session)
+            path = self.state.slot_hook_cwd.get(label_key)
+            if not path:
+                self._set_info_feedback(label_key, 2, "DIFF", "no path")
+                self._update_all_buttons()
+                return
+            status = self._open_kaleidoscope_review(path)
+            subtitle_map = {
+                "opened": "opening",
+                "clean": "clean",
+                "no_repo": "no repo",
+                "missing_ksdiff": "no ks",
+                "failed": "failed",
+            }
+            self._set_info_feedback(label_key, 2, "DIFF", subtitle_map.get(status, "failed"))
+            self._update_all_buttons()
+            return
+        if info_index == 3:
+            self._write_session_text(session, "continue\n")
+
     def _handle_nav_key(self, key):
         action = NAV_KEYMAP.get(key)
         if action is None:
@@ -552,7 +691,10 @@ class DeckController:
                             old_cwds = dict(self.state.slot_cwd)
                             self._build_tty_map()
                             self.state.last_tty_refresh = now
-                            if self.state.slot_tty != old_ttys or self.state.slot_cwd != old_cwds:
+                            if (
+                                self.state.slot_tty != old_ttys
+                                or self.state.slot_cwd != old_cwds
+                            ):
                                 needs_redraw = True
 
                         slot = self._get_frontmost_slot()
@@ -571,13 +713,25 @@ class DeckController:
                                 if cwd and cwd != old_cwd:
                                     self.state.slot_cwd[self.state.active_slot] = cwd
                                     needs_redraw = True
+                            hook_cwd = self.state.slot_hook_cwd.get(self.state.active_slot)
+                            old_branch = self.state.slot_branch.get(self.state.active_slot)
+                            branch = self._resolve_git_branch(hook_cwd) if hook_cwd else None
+                            if branch:
+                                if branch != old_branch:
+                                    self.state.slot_branch[self.state.active_slot] = branch
+                                    needs_redraw = True
+                            elif old_branch is not None:
+                                self.state.slot_branch.pop(self.state.active_slot, None)
+                                needs_redraw = True
                             self.state.last_active_cwd_check = now
 
                         old_status = dict(self.state.slot_status)
+                        old_hook_cwds = dict(self.state.slot_hook_cwd)
                         old_tool_info = dict(self.state.slot_tool_info)
                         self._read_status_files()
                         if (
                             self.state.slot_status != old_status
+                            or self.state.slot_hook_cwd != old_hook_cwds
                             or self.state.slot_tool_info != old_tool_info
                         ):
                             needs_redraw = True
@@ -588,7 +742,7 @@ class DeckController:
                             if "permission" in self.state.slot_status.values():
                                 needs_redraw = True
 
-                        if self._advance_scroll_offsets():
+                        if self._clear_expired_info_feedback(now):
                             needs_redraw = True
 
                         if needs_redraw:

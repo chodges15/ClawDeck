@@ -3,12 +3,17 @@
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
+import tempfile
 
 from .app_logging import logger
 from .constants import ITERM_APP_NAME, SESSIONS
 from .layout import session_label_key
+
+
+KSDIFF_PATH = "/Applications/Kaleidoscope.app/Contents/MacOS/ksdiff"
 
 
 def normalize_tty_name(tty_name):
@@ -304,6 +309,25 @@ end tell
             logger.debug("Failed to resolve CWD for %s", tty_name, exc_info=True)
             return None
 
+    def resolve_git_branch(self, path):
+        """Return the current git branch name for a working directory, if any."""
+        if not path:
+            return None
+        try:
+            result = subprocess.run(
+                ["git", "-C", path, "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode != 0:
+                return None
+            branch = result.stdout.strip()
+            return branch or None
+        except Exception:
+            logger.debug("Failed to resolve git branch for %s", path, exc_info=True)
+            return None
+
     def build_tty_map(self, config):
         """Resolve configured sessions into deck-slot TTY and CWD maps."""
         tty_map = {}
@@ -492,3 +516,186 @@ end tell
                     os.close(fd)
                 except OSError:
                     logger.debug("Failed to close TTY %s", tty_path, exc_info=True)
+
+    def write_tty_text(self, tty_name, text):
+        """Write arbitrary text to a mapped TTY device."""
+        if not tty_name or text is None:
+            return False
+        tty_path = f"/dev/{tty_name}"
+        payload = text.encode("utf-8")
+        fd = None
+        try:
+            fd = os.open(tty_path, os.O_WRONLY | os.O_NOCTTY)
+            os.write(fd, payload)
+            return True
+        except OSError:
+            logger.warning("Failed to write text via %s", tty_path, exc_info=True)
+            return False
+        finally:
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except OSError:
+                    logger.debug("Failed to close TTY %s", tty_path, exc_info=True)
+
+    def open_vscode(self, path):
+        """Open VS Code pointed at the provided directory path."""
+        if not path:
+            return False
+        try:
+            result = subprocess.run(
+                ["open", "-a", "Visual Studio Code", path],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except Exception:
+            logger.warning("Failed to open VS Code for %s", path, exc_info=True)
+            return False
+
+        ok = result.returncode == 0
+        if not ok:
+            logger.warning(
+                "Failed to open VS Code for %s: stderr=%r",
+                path,
+                result.stderr.strip() or None,
+            )
+        return ok
+
+    def open_kaleidoscope_review(self, path):
+        """Open a Kaleidoscope review for tracked uncommitted changes in a repo."""
+        if not path:
+            return "failed"
+        if not Path(KSDIFF_PATH).exists():
+            logger.warning("Kaleidoscope command-line tool not found at %s", KSDIFF_PATH)
+            return "missing_ksdiff"
+
+        try:
+            repo_result = subprocess.run(
+                ["git", "-C", path, "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if repo_result.returncode != 0:
+                return "no_repo"
+            repo_root = repo_result.stdout.strip()
+            if not repo_root:
+                return "no_repo"
+
+            diff_result = subprocess.run(
+                ["git", "-C", repo_root, "diff", "--name-status", "-M", "--relative", "HEAD", "--"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if diff_result.returncode != 0:
+                return "failed"
+
+            entries = []
+            for line in diff_result.stdout.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split("\t")
+                status = parts[0]
+                if status.startswith("R") and len(parts) >= 3:
+                    entries.append(
+                        {
+                            "display_path": parts[2],
+                            "head_path": parts[1],
+                            "worktree_path": parts[2],
+                        }
+                    )
+                elif len(parts) >= 2:
+                    rel_path = parts[1]
+                    entries.append(
+                        {
+                            "display_path": rel_path,
+                            "head_path": rel_path,
+                            "worktree_path": rel_path,
+                        }
+                    )
+
+            untracked_result = subprocess.run(
+                ["git", "-C", repo_root, "ls-files", "--others", "--exclude-standard"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if untracked_result.returncode != 0:
+                return "failed"
+            for line in untracked_result.stdout.splitlines():
+                rel_path = line.strip()
+                if not rel_path:
+                    continue
+                entries.append(
+                    {
+                        "display_path": rel_path,
+                        "head_path": None,
+                        "worktree_path": rel_path,
+                    }
+                )
+
+            deduped_entries = {}
+            for entry in entries:
+                deduped_entries[entry["display_path"]] = entry
+            entries = list(deduped_entries.values())
+            if not entries:
+                return "clean"
+
+            snapshot_root = Path(tempfile.mkdtemp(prefix="clawdeck-ksdiff-"))
+            left_dir = snapshot_root / "HEAD"
+            right_dir = snapshot_root / "WORKTREE"
+            snapshot_root.mkdir(parents=True, exist_ok=True)
+            left_dir.mkdir()
+            right_dir.mkdir()
+
+            for entry in entries:
+                display_path = entry["display_path"]
+                left_path = left_dir / display_path
+                right_path = right_dir / display_path
+                left_path.parent.mkdir(parents=True, exist_ok=True)
+                right_path.parent.mkdir(parents=True, exist_ok=True)
+
+                head_path = entry["head_path"]
+                if head_path:
+                    head_result = subprocess.run(
+                        ["git", "-C", repo_root, "show", f"HEAD:{head_path}"],
+                        capture_output=True,
+                        timeout=5,
+                    )
+                    if head_result.returncode == 0:
+                        left_path.write_bytes(head_result.stdout)
+                    else:
+                        left_path.write_bytes(b"")
+                else:
+                    left_path.write_bytes(b"")
+
+                worktree_rel_path = entry["worktree_path"]
+                worktree_path = Path(repo_root) / worktree_rel_path if worktree_rel_path else None
+                if worktree_path.exists() and worktree_path.is_file():
+                    shutil.copy2(worktree_path, right_path)
+                else:
+                    right_path.write_bytes(b"")
+
+            label = f"{Path(repo_root).name} review"
+            result = subprocess.run(
+                [KSDIFF_PATH, "--no-stdin", "-l", label, str(left_dir), str(right_dir)],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except Exception:
+            logger.warning("Failed to open Kaleidoscope review for %s", path, exc_info=True)
+            return "failed"
+
+        ok = result.returncode == 0
+        if not ok:
+            logger.warning(
+                "Failed to open Kaleidoscope review for %s: stderr=%r",
+                path,
+                result.stderr.strip() or None,
+            )
+            return "failed"
+        return "opened"

@@ -33,6 +33,7 @@ def test_read_status_files_infers_states_and_tool_info(controller, status_dir, m
                 "tty": "ttys001",
                 "state": "pending",
                 "ts": now - 0.5,
+                "hook_input": {"cwd": "/Users/tester/src/demo-project"},
                 "tool_input": {"tool_name": "Bash", "tool_input": {"command": "pytest"}},
             }
         )
@@ -43,6 +44,7 @@ def test_read_status_files_infers_states_and_tool_info(controller, status_dir, m
                 "tty": "ttys002",
                 "state": "pending",
                 "ts": now - PENDING_INFER_SEC - 0.1,
+                "hook_input": {"cwd": "/Users/tester/src/other-project"},
                 "tool_input": {"tool_name": "Read", "tool_input": {"file_path": "main.py"}},
             }
         )
@@ -51,6 +53,10 @@ def test_read_status_files_infers_states_and_tool_info(controller, status_dir, m
     controller._read_status_files()
 
     assert controller.slot_status == {0: "working", 5: "permission"}
+    assert controller.slot_hook_cwd == {
+        0: "/Users/tester/src/demo-project",
+        5: "/Users/tester/src/other-project",
+    }
     assert controller.slot_tool_info[0]["tool_name"] == "Bash"
     assert controller.slot_tool_info[5]["tool_input"] == {"file_path": "main.py"}
     assert controller.scroll_offsets[5] == 0
@@ -59,6 +65,7 @@ def test_read_status_files_infers_states_and_tool_info(controller, status_dir, m
 
 def test_read_status_files_drops_stale_idle_and_ignores_invalid_files(controller, status_dir, monkeypatch):
     controller.slot_tty = {0: "ttys001"}
+    controller.slot_hook_cwd = {0: "/Users/tester/src/demo-project"}
     controller.scroll_offsets = {0: 7}
     controller.scroll_images = {0: "strip"}
     controller.scroll_text = {0: "old"}
@@ -74,6 +81,7 @@ def test_read_status_files_drops_stale_idle_and_ignores_invalid_files(controller
     controller._read_status_files()
 
     assert controller.slot_status == {}
+    assert controller.slot_hook_cwd == {}
     assert controller.slot_tool_info == {}
     assert controller.scroll_offsets == {}
     assert controller.scroll_images == {}
@@ -113,12 +121,20 @@ def test_read_status_files_normalizes_dev_tty_paths(controller, status_dir, monk
     monkeypatch.setattr(status_module.time, "time", lambda: now)
 
     (status_dir / "permission.json").write_text(
-        json.dumps({"tty": "/dev/ttys001", "state": "working", "ts": now})
+        json.dumps(
+            {
+                "tty": "/dev/ttys001",
+                "state": "working",
+                "ts": now,
+                "hook_input": {"cwd": "/Users/tester/src/demo-project"},
+            }
+        )
     )
 
     controller._read_status_files()
 
     assert controller.slot_status == {0: "working"}
+    assert controller.slot_hook_cwd == {0: "/Users/tester/src/demo-project"}
 
 
 def test_read_status_files_keeps_existing_scroll_cache_when_permission_text_unchanged(controller, status_dir, monkeypatch):
@@ -145,3 +161,9 @@ def test_read_status_files_keeps_existing_scroll_cache_when_permission_text_unch
     assert controller.scroll_offsets[0] == 9
     assert controller.scroll_images[0] == "strip"
     assert controller.scroll_text[0] == "Bash: same command"
+
+
+def test_read_status_files_extracts_hook_cwd_from_string_json(controller):
+    raw = '{"cwd":"/Users/tester/src/demo-project","hook_event_name":"Notification"}'
+
+    assert controller.status_reader.extract_hook_cwd(raw) == "/Users/tester/src/demo-project"

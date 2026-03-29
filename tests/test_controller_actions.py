@@ -25,14 +25,31 @@ def test_handle_key_hold_activates_session_updates_buttons_and_triggers_mic(cont
     mic_mock.assert_called_once_with()
 
 
-def test_handle_key_ignores_non_label_keys_in_row_mode(controller):
+def test_handle_key_press_ignores_non_label_keys_in_row_mode(controller):
     controller.mode = MODE_ROW
 
-    with patch.object(controller, "_handle_row_key") as row_mock:
+    with patch.object(controller, "_handle_info_key") as info_mock:
         controller._handle_key(1, True)
+
+    info_mock.assert_not_called()
+
+
+def test_handle_key_release_routes_dir_button_to_info_handler(controller):
+    controller.mode = MODE_ROW
+
+    with patch.object(controller, "_handle_info_key") as info_mock:
         controller._handle_key(1, False)
 
-    row_mock.assert_not_called()
+    info_mock.assert_called_once_with("T1", 0)
+
+
+def test_handle_key_release_routes_other_info_buttons_to_info_handler(controller):
+    controller.mode = MODE_ROW
+
+    with patch.object(controller, "_handle_info_key") as info_mock:
+        controller._handle_key(2, False)
+
+    info_mock.assert_called_once_with("T1", 1)
 
 
 def test_handle_key_in_nav_mode_routes_only_pressed_events(controller):
@@ -121,6 +138,94 @@ def test_handle_row_key_inactive_slot_updates_when_activation_succeeds(controlle
 
     activate_mock.assert_called_once_with("T3")
     update_mock.assert_called_once_with()
+
+
+def test_handle_info_key_dir_button_opens_vscode_for_hook_cwd(controller):
+    controller.slot_hook_cwd = {0: "/Users/tester/src/demo-project"}
+    controller.slot_cwd = {0: "/"}
+
+    with patch.object(controller, "_open_vscode") as open_mock:
+        controller._handle_info_key("T1", 0)
+
+    open_mock.assert_called_once_with("/Users/tester/src/demo-project")
+
+
+def test_handle_info_key_dir_button_does_not_fallback_to_tty_cwd(controller):
+    controller.slot_hook_cwd = {}
+    controller.slot_cwd = {0: "/Users/tester/src/shell-root"}
+
+    with patch.object(controller, "_open_vscode") as open_mock:
+        controller._handle_info_key("T1", 0)
+
+    open_mock.assert_not_called()
+
+
+def test_handle_info_key_diff_button_opens_kaleidoscope_review(controller):
+    controller.slot_hook_cwd = {0: "/Users/tester/src/demo-project"}
+
+    with patch.object(controller, "_open_kaleidoscope_review") as review_mock:
+        review_mock.return_value = "opened"
+        with patch.object(controller, "_update_all_buttons") as update_mock:
+            controller._handle_info_key("T1", 2)
+
+    review_mock.assert_called_once_with("/Users/tester/src/demo-project")
+    assert controller.info_feedback[(0, 2)]["subtitle"] == "opening"
+    update_mock.assert_called_once_with()
+
+
+def test_handle_info_key_diff_button_shows_no_path_feedback(controller):
+    controller.slot_hook_cwd = {}
+
+    with patch.object(controller, "_update_all_buttons") as update_mock:
+        controller._handle_info_key("T1", 2)
+
+    assert controller.info_feedback[(0, 2)]["subtitle"] == "no path"
+    update_mock.assert_called_once_with()
+
+
+def test_handle_info_key_diff_button_does_not_fallback_to_tty_cwd(controller):
+    controller.slot_hook_cwd = {}
+    controller.slot_cwd = {0: "/Users/tester/src/shell-root"}
+
+    with patch.object(controller, "_open_kaleidoscope_review") as review_mock:
+        with patch.object(controller, "_update_all_buttons") as update_mock:
+            controller._handle_info_key("T1", 2)
+
+    review_mock.assert_not_called()
+    assert controller.info_feedback[(0, 2)]["subtitle"] == "no path"
+    update_mock.assert_called_once_with()
+
+
+def test_handle_info_key_branch_button_does_nothing(controller):
+    controller.slot_hook_cwd = {0: "/Users/tester/src/demo-project"}
+
+    with patch.object(controller, "_open_vscode") as open_mock:
+        with patch.object(controller, "_open_kaleidoscope_review") as review_mock:
+            with patch.object(controller, "_write_session_text") as write_mock:
+                controller._handle_info_key("T1", 1)
+
+    open_mock.assert_not_called()
+    review_mock.assert_not_called()
+    write_mock.assert_not_called()
+
+
+def test_handle_info_key_play_button_writes_continue_to_tty(controller):
+    with patch.object(controller, "_write_session_text") as write_mock:
+        controller._handle_info_key("T1", 3)
+
+    write_mock.assert_called_once_with("T1", "continue\n")
+
+
+def test_clear_expired_info_feedback_removes_expired_entries(controller):
+    controller.info_feedback = {
+        (0, 2): {"label": "DIFF", "subtitle": "clean", "expires_at": 10.0},
+        (5, 2): {"label": "DIFF", "subtitle": "opening", "expires_at": 30.0},
+    }
+
+    assert controller._clear_expired_info_feedback(now=15.0) is True
+    assert controller.info_feedback == {
+        (5, 2): {"label": "DIFF", "subtitle": "opening", "expires_at": 30.0}
+    }
 
 
 @pytest.mark.parametrize(
@@ -333,6 +438,8 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
     controller.active_slot = None
     controller.slot_tty = {0: "ttys001"}
     controller.slot_cwd = {0: "/tmp/old"}
+    controller.slot_hook_cwd = {0: "/Users/tester/src/project"}
+    controller.slot_branch = {0: "main"}
     controller.slot_status = {}
     controller.slot_tool_info = {}
     controller._last_tty_refresh = 0
@@ -347,6 +454,7 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
 
     def fake_read():
         controller.slot_status = {0: "permission"}
+        controller.slot_hook_cwd = {0: "/Users/tester/src/project"}
         controller.slot_tool_info = {0: {"tool_name": "Bash", "tool_input": {"command": "pytest"}}}
 
     def fake_sleep(_interval):
@@ -355,8 +463,8 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
     with patch.object(controller, "_build_tty_map", side_effect=fake_build) as build_mock:
         with patch.object(controller, "_get_frontmost_slot", return_value=0) as front_mock:
             with patch.object(controller, "_resolve_tty_cwd", return_value="/tmp/new") as cwd_mock:
-                with patch.object(controller, "_read_status_files", side_effect=fake_read) as read_mock:
-                    with patch.object(controller, "_advance_scroll_offsets", return_value=True) as scroll_mock:
+                with patch.object(controller, "_resolve_git_branch", return_value="feature/new") as branch_mock:
+                    with patch.object(controller, "_read_status_files", side_effect=fake_read) as read_mock:
                         with patch.object(controller, "_update_all_buttons") as update_mock:
                             monkeypatch.setattr(controller_module.time, "sleep", fake_sleep)
                             controller._poll_active_loop()
@@ -364,11 +472,12 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
     build_mock.assert_called_once_with()
     front_mock.assert_called_once_with()
     cwd_mock.assert_called_once_with("ttys001")
+    branch_mock.assert_called_once_with("/Users/tester/src/project")
     read_mock.assert_called_once_with()
-    scroll_mock.assert_called_once_with()
     update_mock.assert_called_once_with()
     assert controller.active_slot == 0
     assert controller.slot_cwd[0] == "/tmp/new"
+    assert controller.slot_branch[0] == "feature/new"
     assert controller.blink_on is False
 
 

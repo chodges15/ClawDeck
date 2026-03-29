@@ -130,29 +130,11 @@ def test_draw_row_mode_leaves_unmapped_info_buttons_dark(controller, fake_deck):
         }
 
 
-def test_draw_row_mode_permission_row_uses_scroll_buttons(controller, fake_deck):
+def test_draw_row_mode_permission_row_shows_static_session_info(controller, fake_deck):
     controller.deck = fake_deck
     controller.slot_tty = {0: "ttys001"}
-    controller.slot_status = {0: "permission"}
-    controller.scroll_offsets = {0: 3}
-    controller._render_button = MagicMock(return_value="label")
-    controller._ensure_scroll_strip = MagicMock(return_value="strip")
-    controller._render_scroll_button = MagicMock(side_effect=lambda strip, offset, idx: f"scroll-{offset}-{idx}")
-
-    controller._draw_row_mode()
-
-    assert [fake_deck.images[key] for key in (1, 2, 3, 4)] == [
-        "scroll-3-0",
-        "scroll-3-1",
-        "scroll-3-2",
-        "scroll-3-3",
-    ]
-
-
-def test_draw_row_mode_shows_cwd_subtitle_on_first_info_button(controller, fake_deck):
-    controller.deck = fake_deck
-    controller.slot_tty = {0: "ttys001"}
-    controller.slot_cwd = {0: "/tmp/project"}
+    controller.slot_hook_cwd = {0: "/Users/tester/src/project"}
+    controller.slot_branch = {0: "feature/session-info"}
 
     def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
         return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
@@ -161,10 +143,68 @@ def test_draw_row_mode_shows_cwd_subtitle_on_first_info_button(controller, fake_
 
     controller._draw_row_mode()
 
+    assert [fake_deck.images[key] for key in (1, 2, 3, 4)] == [
+        {"label": "DIR", "subtitle": "project", "bg": COLOR_BG_DEFAULT, "border": None},
+        {"label": "⎇", "subtitle": "feature/session-info", "bg": COLOR_BG_DEFAULT, "border": None},
+        {"label": "DIFF", "subtitle": "review", "bg": COLOR_BG_DEFAULT, "border": None},
+        {"label": "▶", "subtitle": "continue", "bg": COLOR_BG_DEFAULT, "border": None},
+    ]
+
+
+def test_draw_row_mode_uses_hook_cwd_for_directory_cell(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.slot_cwd = {0: "/"}
+    controller.slot_hook_cwd = {0: "/Users/tester/src/project"}
+    controller.slot_branch = {0: "main"}
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[1]["label"] == "DIR"
     assert fake_deck.images[1]["subtitle"] == "project"
-    assert fake_deck.images[2]["subtitle"] is None
-    assert fake_deck.images[3]["subtitle"] is None
-    assert fake_deck.images[4]["subtitle"] is None
+    assert fake_deck.images[2]["label"] == "⎇"
+    assert fake_deck.images[2]["subtitle"] == "main"
+    assert fake_deck.images[3]["label"] == "DIFF"
+    assert fake_deck.images[3]["subtitle"] == "review"
+    assert fake_deck.images[4]["label"] == "▶"
+    assert fake_deck.images[4]["subtitle"] == "continue"
+
+
+def test_draw_row_mode_does_not_fallback_to_tty_shell_cwd(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.slot_cwd = {0: "/"}
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[1]["label"] == "DIR"
+    assert fake_deck.images[1]["subtitle"] == "Unknown"
+
+
+def test_draw_row_mode_overlays_diff_feedback(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.info_feedback = {(0, 2): {"label": "DIFF", "subtitle": "clean", "expires_at": 99.0}}
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[3]["label"] == "DIFF"
+    assert fake_deck.images[3]["subtitle"] == "clean"
 
 
 def test_draw_nav_mode_uses_nav_styles_and_active_border(controller, fake_deck):

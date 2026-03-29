@@ -14,8 +14,11 @@ class ControllerState:
     active_slot: int | None = None
     slot_tty: dict[int, str] = field(default_factory=dict)
     slot_cwd: dict[int, str] = field(default_factory=dict)
+    slot_hook_cwd: dict[int, str] = field(default_factory=dict)
+    slot_branch: dict[int, str] = field(default_factory=dict)
     slot_status: dict[int, str] = field(default_factory=dict)
     slot_tool_info: dict[int, dict] = field(default_factory=dict)
+    info_feedback: dict[tuple[int, int], dict[str, object]] = field(default_factory=dict)
     scroll_offsets: dict[int, int] = field(default_factory=dict)
     scroll_images: dict[int, object] = field(default_factory=dict)
     scroll_text: dict[int, str] = field(default_factory=dict)

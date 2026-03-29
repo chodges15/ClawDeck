@@ -30,10 +30,12 @@ TTY_NAME="${SHELL_TTY#/dev/}"
 
 [ -z "$TTY_NAME" ] && exit 0
 
+HOOK_INPUT=$(cat 2>/dev/null || true)
+[ -z "$HOOK_INPUT" ] && HOOK_INPUT="null"
+
 TOOL_INFO="null"
 if [ "$STATE" = "pending" ]; then
-    TOOL_INFO=$(cat 2>/dev/null || true)
-    [ -z "$TOOL_INFO" ] && TOOL_INFO="null"
+    TOOL_INFO="$HOOK_INPUT"
 fi
 
 # Ensure status directory exists
@@ -41,6 +43,6 @@ mkdir -p "$STATUS_DIR" 2>/dev/null
 
 # Write status file (atomic via temp + mv)
 TMPFILE=$(mktemp "$STATUS_DIR/.tmp.XXXXXX")
-printf '{"state":"%s","tty":"%s","ts":%s,"tool_input":%s}' \
-    "$STATE" "$TTY_NAME" "$(date +%s)" "$TOOL_INFO" > "$TMPFILE"
+printf '{"state":"%s","tty":"%s","ts":%s,"hook_input":%s,"tool_input":%s}' \
+    "$STATE" "$TTY_NAME" "$(date +%s)" "$HOOK_INPUT" "$TOOL_INFO" > "$TMPFILE"
 mv "$TMPFILE" "$STATUS_DIR/$TTY_NAME"

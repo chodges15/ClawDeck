@@ -17,6 +17,7 @@ def test_build_tty_map_matches_tab_titles_case_insensitively(controller):
 
     assert controller.slot_tty == {0: "ttys001", 5: "ttys002"}
     assert controller.slot_cwd == {0: "/tmp/ttys001", 5: "/tmp/ttys002"}
+    assert controller.slot_branch == {}
 
 
 def test_build_tty_map_ignores_unmatched_patterns(controller):
@@ -29,6 +30,7 @@ def test_build_tty_map_ignores_unmatched_patterns(controller):
 
     assert controller.slot_tty == {10: "ttys004"}
     assert controller.slot_cwd == {10: "/tmp/ttys004"}
+    assert controller.slot_branch == {}
 
 
 def test_build_tty_map_falls_back_to_literal_session_names_when_unconfigured(controller):
@@ -44,6 +46,7 @@ def test_build_tty_map_falls_back_to_literal_session_names_when_unconfigured(con
 
     assert controller.slot_tty == {0: "ttys001", 10: "ttys003"}
     assert controller.slot_cwd == {0: "/tmp/ttys001", 10: "/tmp/ttys003"}
+    assert controller.slot_branch == {}
 
 
 def test_match_session_info_prefers_tab_title_and_falls_back_to_name(controller):

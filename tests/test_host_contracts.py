@@ -191,6 +191,22 @@ def test_resolve_tty_cwd_uses_last_shell_pid(controller, subprocess_result):
     ]
 
 
+def test_resolve_git_branch_reads_branch_from_cwd(controller, subprocess_result):
+    with patch(
+        "clawdeck.host.subprocess.run",
+        return_value=subprocess_result(stdout="feature/session-info\n"),
+    ) as run_mock:
+        branch = controller._resolve_git_branch("/Users/chodges/src/ClawDeck")
+
+    assert branch == "feature/session-info"
+    run_mock.assert_called_once_with(
+        ["git", "-C", "/Users/chodges/src/ClawDeck", "branch", "--show-current"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+
+
 def test_frontmost_session_name_strips_output(controller, subprocess_result):
     with patch(
         "clawdeck.host.subprocess.run",
@@ -261,6 +277,134 @@ def test_approve_permission_uses_tty_path_and_closes_fd_on_error(controller):
     open_mock.assert_called_once_with("/dev/ttys009", host_module.os.O_WRONLY | host_module.os.O_NOCTTY)
     write_mock.assert_called_once_with(11, b"y\n")
     close_mock.assert_called_once_with(11)
+
+
+def test_write_session_text_uses_tty_path_and_payload(controller):
+    controller.slot_tty = {0: "ttys009"}
+
+    with patch("clawdeck.host.os.open", return_value=11) as open_mock:
+        with patch("clawdeck.host.os.write") as write_mock:
+            with patch("clawdeck.host.os.close") as close_mock:
+                assert controller._write_session_text("T1", "continue\n") is True
+
+    open_mock.assert_called_once_with("/dev/ttys009", host_module.os.O_WRONLY | host_module.os.O_NOCTTY)
+    write_mock.assert_called_once_with(11, b"continue\n")
+    close_mock.assert_called_once_with(11)
+
+
+def test_open_vscode_uses_open_app_with_path(controller, subprocess_result):
+    with patch(
+        "clawdeck.host.subprocess.run",
+        return_value=subprocess_result(),
+    ) as run_mock:
+        assert controller._open_vscode("/Users/tester/src/demo-project") is True
+
+    run_mock.assert_called_once_with(
+        ["open", "-a", "Visual Studio Code", "/Users/tester/src/demo-project"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+
+
+def test_open_kaleidoscope_review_builds_snapshot_dirs_and_launches_ksdiff(
+    controller, subprocess_result, tmp_path, monkeypatch
+):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / "file.txt").write_text("worktree\n")
+    (repo_root / "new.txt").write_text("untracked\n")
+
+    ksdiff_path = tmp_path / "ksdiff"
+    ksdiff_path.write_text("")
+    snapshot_root = tmp_path / "snapshots"
+
+    monkeypatch.setattr(host_module, "KSDIFF_PATH", str(ksdiff_path))
+    monkeypatch.setattr(host_module.tempfile, "mkdtemp", lambda prefix: str(snapshot_root))
+
+    with patch(
+        "clawdeck.host.subprocess.run",
+        side_effect=[
+            subprocess_result(stdout=f"{repo_root}\n"),
+            subprocess_result(stdout="M\tfile.txt\nD\tgone.txt\n"),
+            subprocess_result(stdout="new.txt\n"),
+            SimpleNamespace(stdout=b"head\n", stderr=b"", returncode=0),
+            SimpleNamespace(stdout=b"gone\n", stderr=b"", returncode=0),
+            subprocess_result(),
+        ],
+    ) as run_mock:
+        assert controller._open_kaleidoscope_review(str(repo_root)) == "opened"
+
+    assert (snapshot_root / "HEAD" / "file.txt").read_text() == "head\n"
+    assert (snapshot_root / "WORKTREE" / "file.txt").read_text() == "worktree\n"
+    assert (snapshot_root / "HEAD" / "gone.txt").read_text() == "gone\n"
+    assert (snapshot_root / "WORKTREE" / "gone.txt").read_text() == ""
+    assert (snapshot_root / "HEAD" / "new.txt").read_text() == ""
+    assert (snapshot_root / "WORKTREE" / "new.txt").read_text() == "untracked\n"
+    assert run_mock.call_args_list == [
+        call(
+            ["git", "-C", str(repo_root), "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ),
+        call(
+            ["git", "-C", str(repo_root), "diff", "--name-status", "-M", "--relative", "HEAD", "--"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ),
+        call(
+            ["git", "-C", str(repo_root), "ls-files", "--others", "--exclude-standard"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ),
+        call(
+            ["git", "-C", str(repo_root), "show", "HEAD:file.txt"],
+            capture_output=True,
+            timeout=5,
+        ),
+        call(
+            ["git", "-C", str(repo_root), "show", "HEAD:gone.txt"],
+            capture_output=True,
+            timeout=5,
+        ),
+        call(
+            [
+                str(ksdiff_path),
+                "--no-stdin",
+                "-l",
+                "repo review",
+                str(snapshot_root / "HEAD"),
+                str(snapshot_root / "WORKTREE"),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ),
+    ]
+
+
+def test_open_kaleidoscope_review_returns_clean_when_no_changes(
+    controller, subprocess_result, tmp_path, monkeypatch
+):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    ksdiff_path = tmp_path / "ksdiff"
+    ksdiff_path.write_text("")
+
+    monkeypatch.setattr(host_module, "KSDIFF_PATH", str(ksdiff_path))
+
+    with patch(
+        "clawdeck.host.subprocess.run",
+        side_effect=[
+            subprocess_result(stdout=f"{repo_root}\n"),
+            subprocess_result(stdout=""),
+            subprocess_result(stdout=""),
+        ],
+    ):
+        assert controller._open_kaleidoscope_review(str(repo_root)) == "clean"
 
 
 def test_trigger_mic_fn_posts_fn_key_twice(controller):

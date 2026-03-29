@@ -6,6 +6,7 @@ the sandbox while still exercising rendering and integration contracts.
 """
 
 import copy
+import json
 import os
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
@@ -250,3 +251,78 @@ def require_mac_smoke():
 def require_deck_smoke():
     if os.environ.get("CLAWDECK_DECK_SMOKE") != "1":
         pytest.skip("Set CLAWDECK_DECK_SMOKE=1 to run Stream Deck smoke tests")
+
+
+@pytest.fixture
+def claude_hook_common_fields():
+    """Return stable fake common fields used by Claude hook payload fixtures."""
+    return {
+        "session_id": "session-test-001",
+        "transcript_path": "/Users/tester/.claude/projects/demo-project/transcript.jsonl",
+        "cwd": "/Users/tester/src/demo-project",
+        "permission_mode": "default",
+    }
+
+
+@pytest.fixture
+def claude_hook_payloads(claude_hook_common_fields):
+    """Return docs-inspired Claude hook payloads with stable fake values."""
+    common = copy.deepcopy(claude_hook_common_fields)
+
+    payloads = {
+        "pre_tool_use": {
+            **common,
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "tool_input": {"command": "git status --short"},
+            "tool_use_id": "toolu_test_pre_001",
+        },
+        "permission_request": {
+            **common,
+            "hook_event_name": "PermissionRequest",
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "/Users/tester/src/demo-project/app.py",
+                "content": "print('hello')\n",
+            },
+            "tool_use_id": "toolu_test_perm_001",
+            "permission_suggestions": [
+                {
+                    "label": "Allow once",
+                    "value": "allow_once",
+                },
+                {
+                    "label": "Deny",
+                    "value": "deny",
+                },
+            ],
+        },
+        "post_tool_use": {
+            **common,
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Read",
+            "tool_input": {"file_path": "/Users/tester/src/demo-project/README.md"},
+            "tool_response": {
+                "content": "Demo project README",
+            },
+            "tool_use_id": "toolu_test_post_001",
+        },
+        "notification": {
+            **common,
+            "hook_event_name": "Notification",
+            "message": "Claude needs permission to write app.py",
+            "title": "Permission required",
+            "notification_type": "permission_prompt",
+        },
+        "cwd_changed": {
+            **common,
+            "hook_event_name": "CwdChanged",
+            "cwd": "/Users/tester/src/demo-project/packages/api",
+            "old_cwd": "/Users/tester/src/demo-project",
+            "new_cwd": "/Users/tester/src/demo-project/packages/api",
+        },
+    }
+
+    # Keep fixture values valid JSON so hook tests can pipe them directly to stdin.
+    json.dumps(payloads)
+    return payloads

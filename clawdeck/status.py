@@ -15,6 +15,7 @@ class StatusSnapshot:
     """One pass of derived slot status plus scroll-cache invalidation data."""
 
     slot_status: dict[int, str] = field(default_factory=dict)
+    slot_hook_cwd: dict[int, str] = field(default_factory=dict)
     slot_tool_info: dict[int, dict] = field(default_factory=dict)
     clear_scroll_slots: set[int] = field(default_factory=set)
     reset_scroll_slots: set[int] = field(default_factory=set)
@@ -69,6 +70,29 @@ class StatusReader:
 
         return {"tool_name": str(tool_name), "tool_input": tool_input}
 
+    def extract_hook_cwd(self, raw):
+        """Extract hook-reported cwd from a raw hook payload, if present."""
+        if raw in (None, "", {}):
+            return None
+
+        if isinstance(raw, str):
+            stripped = raw.strip()
+            if not stripped:
+                return None
+            try:
+                raw = json.loads(stripped)
+            except json.JSONDecodeError:
+                return None
+
+        if not isinstance(raw, dict):
+            return None
+
+        cwd = raw.get("cwd")
+        if isinstance(cwd, str):
+            cwd = cwd.strip()
+            return cwd or None
+        return None
+
     def read(self, slot_tty, config, formatter, scroll_text):
         """Read status files and return the current per-slot snapshot."""
         status_dir = Path(STATUS_DIR)
@@ -105,6 +129,10 @@ class StatusReader:
                 state = "permission" if age >= PENDING_INFER_SEC else "working"
 
             snapshot.slot_status[slot] = state
+
+            hook_cwd = self.extract_hook_cwd(data.get("hook_input"))
+            if hook_cwd is not None:
+                snapshot.slot_hook_cwd[slot] = hook_cwd
 
             tool_info = self.normalize_tool_info(data.get("tool_input"))
             if tool_info is not None:
