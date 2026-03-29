@@ -9,7 +9,7 @@ from StreamDeck.DeviceManager import DeviceManager
 
 from .config import ConfigStore, hex_to_rgb
 from .constants import BRIGHTNESS, COLOR_BG_DEFAULT, COLOR_FG_DEFAULT, TOTAL_KEYS
-from .host import HostIntegration, match_session_name, session_pattern
+from .host import HostIntegration, match_session_info, session_matches_pattern, session_pattern
 from .render import DeckRenderer
 
 
@@ -33,7 +33,7 @@ def collect_iterm_snapshot(host=None, config_store=None):
         pattern = session_pattern(config, session_name)
         matched = None
         for info in sessions:
-            if pattern and pattern.lower() in info["name"].lower():
+            if session_matches_pattern(pattern, info):
                 matched = dict(info)
                 break
         if matched:
@@ -50,7 +50,7 @@ def collect_iterm_snapshot(host=None, config_store=None):
     for info in sessions:
         detailed = dict(info)
         detailed["cwd"] = host.resolve_tty_cwd(info["tty"])
-        detailed["mapped_session"] = match_session_name(config, info["name"])
+        detailed["mapped_session"] = match_session_info(config, info)
         detailed_sessions.append(detailed)
 
     return {
@@ -86,8 +86,20 @@ def print_iterm_snapshot(snapshot, out=None):
         return
     for info in snapshot["sessions"]:
         mapped = info["mapped_session"] or "-"
+        size = "-"
+        if info.get("columns") and info.get("rows"):
+            size = f"{info['columns']}x{info['rows']}"
+        tab_title = info.get("tab_title") or "-"
+        profile = info.get("profile_name") or "-"
+        window_index = info.get("window_index")
+        window = str(window_index) if window_index is not None else "-"
+        frontmost = "yes" if info.get("window_frontmost") else "no"
+        processing = "yes" if info.get("is_processing") else "no"
+        prompt = "yes" if info.get("is_at_shell_prompt") else "no"
         print(
-            f"- tty={info['tty']} mapped={mapped} cwd={info['cwd'] or '-'} name={info['name']!r}",
+            f"- tty={info['tty']} mapped={mapped} cwd={info['cwd'] or '-'} tab={tab_title!r} "
+            f"window={window} frontmost={frontmost} profile={profile!r} "
+            f"busy={processing} prompt={prompt} size={size} name={info['name']!r}",
             file=out,
         )
 

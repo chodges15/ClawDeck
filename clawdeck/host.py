@@ -51,6 +51,28 @@ def match_session_name(config, session_name):
     return None
 
 
+def session_matches_pattern(pattern, info):
+    """Return whether a row pattern matches an iTerm tab title or session name."""
+    if not pattern:
+        return False
+    for key in ("tab_title", "name"):
+        value = info.get(key)
+        if value and pattern.lower() in value.lower():
+            return True
+    return False
+
+
+def match_session_info(config, info):
+    """Map iTerm session metadata back to a logical ClawDeck session."""
+    if not info:
+        return None
+    for session in SESSIONS:
+        pattern = session_pattern(config, session)
+        if session_matches_pattern(pattern, info):
+            return session
+    return None
+
+
 class HostIntegration:
     """Perform macOS and iTerm boundary operations for the controller."""
 
@@ -108,19 +130,79 @@ class HostIntegration:
             print("  Not yet — make sure your terminal app is toggled ON, then try again.")
 
     def get_iterm_sessions(self):
-        """Return iTerm2 sessions as [{'name': str, 'tty': str}, ...]."""
+        """Return iTerm2 sessions with session, tab, and window metadata."""
         script = r'''
 tell application "iTerm2"
     if not running then return ""
+    set fieldSep to ASCII character 31
     set output to ""
     repeat with w in windows
         repeat with t in tabs of w
             repeat with s in sessions of t
+                set sessionName to ""
+                set sessionTTY to ""
+                set tabTitle to ""
+                set tabIndex to ""
+                set sessionID to ""
+                set profileName to ""
+                set isProcessing to ""
+                set isAtPrompt to ""
+                set sessionColumns to ""
+                set sessionRows to ""
+                set windowID to ""
+                set windowIndex to ""
+                set windowName to ""
+                set windowFrontmost to ""
+
                 try
                     set sessionName to name of s
-                    set sessionTTY to tty of s
-                    set output to output & sessionName & "|||" & sessionTTY & linefeed
                 end try
+                try
+                    set sessionTTY to tty of s
+                end try
+                try
+                    set tabTitle to title of t
+                end try
+                try
+                    set tabIndex to index of t as text
+                end try
+                try
+                    set sessionID to id of s
+                end try
+                try
+                    set profileName to profile name of s
+                end try
+                try
+                    set isProcessing to is processing of s as text
+                end try
+                try
+                    set isAtPrompt to is at shell prompt of s as text
+                end try
+                try
+                    set sessionColumns to columns of s as text
+                end try
+                try
+                    set sessionRows to rows of s as text
+                end try
+                try
+                    set windowID to id of w as text
+                end try
+                try
+                    set windowIndex to index of w as text
+                end try
+                try
+                    set windowName to name of w
+                end try
+                try
+                    set windowFrontmost to frontmost of w as text
+                end try
+
+                if sessionName is not "" and sessionTTY is not "" then
+                    set fields to {sessionName, sessionTTY, tabTitle, (tabIndex as text), sessionID, profileName, (isProcessing as text), (isAtPrompt as text), (sessionColumns as text), (sessionRows as text), (windowID as text), (windowIndex as text), windowName, (windowFrontmost as text)}
+                    set AppleScript's text item delimiters to fieldSep
+                    set output to output & (fields as text) & linefeed
+                    set AppleScript's text item delimiters to ""
+                end if
             end repeat
         end repeat
     end repeat
@@ -142,12 +224,45 @@ end tell
 
         sessions = []
         for line in result.stdout.splitlines():
-            if "|||" not in line:
+            parts = line.split("\x1f")
+            if len(parts) < 14:
                 continue
-            name, tty = line.split("|||", 1)
+            (
+                name,
+                tty,
+                tab_title,
+                tab_index,
+                session_id,
+                profile_name,
+                is_processing,
+                is_at_shell_prompt,
+                columns,
+                rows,
+                window_id,
+                window_index,
+                window_name,
+                window_frontmost,
+            ) = parts[:14]
             tty = normalize_tty_name(tty)
             if name.strip() and tty:
-                sessions.append({"name": name.strip(), "tty": tty})
+                sessions.append(
+                    {
+                        "name": name.strip(),
+                        "tty": tty,
+                        "tab_title": tab_title.strip() or None,
+                        "tab_index": int(tab_index) if tab_index.strip() else None,
+                        "session_id": session_id.strip() or None,
+                        "profile_name": profile_name.strip() or None,
+                        "is_processing": is_processing.strip().lower() == "true",
+                        "is_at_shell_prompt": is_at_shell_prompt.strip().lower() == "true",
+                        "columns": int(columns) if columns.strip() else None,
+                        "rows": int(rows) if rows.strip() else None,
+                        "window_id": int(window_id) if window_id.strip() else None,
+                        "window_index": int(window_index) if window_index.strip() else None,
+                        "window_name": window_name.strip() or None,
+                        "window_frontmost": window_frontmost.strip().lower() == "true",
+                    }
+                )
         return sessions
 
     def resolve_tty_cwd(self, tty_name):
@@ -242,10 +357,53 @@ end tell
             logger.debug("Failed to detect frontmost iTerm2 session", exc_info=True)
             return None
 
+    def frontmost_session_info(self):
+        """Return tab/session metadata for the currently focused iTerm session."""
+        script = r'''
+tell application "iTerm2"
+    if not running then return ""
+    set fieldSep to ASCII character 31
+    try
+        set tabTitle to ""
+        set sessionName to ""
+        try
+            set tabTitle to title of current tab of current window
+        end try
+        try
+            set sessionName to name of current session of current tab of current window
+        end try
+        set AppleScript's text item delimiters to fieldSep
+        return ({tabTitle, sessionName} as text)
+    on error
+        return ""
+    end try
+end tell
+'''
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode != 0:
+                return None
+            parts = result.stdout.strip().split("\x1f", 1)
+            tab_title = parts[0].strip() if parts else ""
+            session_name = parts[1].strip() if len(parts) > 1 else ""
+            if not tab_title and not session_name:
+                return None
+            return {
+                "tab_title": tab_title or None,
+                "name": session_name or None,
+            }
+        except Exception:
+            logger.debug("Failed to detect frontmost iTerm2 session info", exc_info=True)
+            return None
+
     def get_frontmost_slot(self, config):
         """Resolve the frontmost iTerm session into a deck label key."""
-        session_name = self.frontmost_session_name()
-        session = match_session_name(config, session_name)
+        session = match_session_info(config, self.frontmost_session_info())
         return session_label_key(session) if session else None
 
     def activate_session(self, config, session):
@@ -261,7 +419,11 @@ tell application "{ITERM_APP_NAME}"
     if not running then return "not-running"
     repeat with w in windows
         repeat with t in tabs of w
+            set tabTitle to ""
             set sessionName to missing value
+            try
+                set tabTitle to title of t
+            end try
             try
                 set sessionName to name of current session of t
             end try
@@ -269,7 +431,7 @@ tell application "{ITERM_APP_NAME}"
                 set sessionName to ""
             end if
             ignoring case
-                if sessionName contains matchPattern then
+                if tabTitle contains matchPattern or sessionName contains matchPattern then
                     try
                         tell t to select
                         tell w

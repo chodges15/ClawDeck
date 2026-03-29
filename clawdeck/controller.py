@@ -27,8 +27,10 @@ from .constants import (
 )
 from .host import (
     HostIntegration,
+    match_session_info,
     match_session_name,
     normalize_tty_name,
+    session_matches_pattern,
     session_pattern,
 )
 from .input import InputController
@@ -245,6 +247,9 @@ class DeckController:
     def _match_session_name(self, session_name):
         return match_session_name(self.config, session_name)
 
+    def _match_session_info(self, info):
+        return match_session_info(self.config, info)
+
     def _normalize_tty_name(self, tty_name):
         return normalize_tty_name(tty_name)
 
@@ -264,7 +269,7 @@ class DeckController:
             if not pattern:
                 continue
             for info in sessions:
-                if pattern.lower() in info["name"].lower():
+                if session_matches_pattern(pattern, info):
                     label_key = self._session_label_key(session)
                     tty_map[label_key] = info["tty"]
                     cwd = self._resolve_tty_cwd(info["tty"])

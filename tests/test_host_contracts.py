@@ -72,27 +72,95 @@ def test_check_accessibility_opens_settings_and_retries(controller, subprocess_r
     input_mock.assert_called_once()
 
 
-def test_get_iterm_sessions_parses_name_and_tty(controller, subprocess_result):
+def test_get_iterm_sessions_parses_session_tab_and_window_metadata(controller, subprocess_result):
     stdout = "\n".join(
         [
-            "Claude T1|||/dev/ttys001",
-            "Claude T2|||ttys002",
+            "\x1f".join(
+                [
+                    "Claude T1",
+                    "/dev/ttys001",
+                    "T1",
+                    "1",
+                    "session-1",
+                    "Default",
+                    "true",
+                    "false",
+                    "120",
+                    "40",
+                    "101",
+                    "1",
+                    "Claude Workspace",
+                    "true",
+                ]
+            ),
+            "\x1f".join(
+                [
+                    "Claude T2",
+                    "ttys002",
+                    "T2",
+                    "2",
+                    "session-2",
+                    "Hotkey",
+                    "false",
+                    "true",
+                    "80",
+                    "24",
+                    "102",
+                    "2",
+                    "Scratch",
+                    "false",
+                ]
+            ),
             "bad-line",
-            "|||/dev/ttys003",
+            "\x1f".join(["", "/dev/ttys003", "T3", "3", "session-3", "", "false", "false", "80", "24", "103", "3", "Unused", "false"]),
         ]
     )
     with patch("clawdeck.host.subprocess.run", return_value=subprocess_result(stdout=stdout)) as run_mock:
         sessions = controller._get_iterm_sessions()
 
     assert sessions == [
-        {"name": "Claude T1", "tty": "ttys001"},
-        {"name": "Claude T2", "tty": "ttys002"},
+        {
+            "name": "Claude T1",
+            "tty": "ttys001",
+            "tab_title": "T1",
+            "tab_index": 1,
+            "session_id": "session-1",
+            "profile_name": "Default",
+            "is_processing": True,
+            "is_at_shell_prompt": False,
+            "columns": 120,
+            "rows": 40,
+            "window_id": 101,
+            "window_index": 1,
+            "window_name": "Claude Workspace",
+            "window_frontmost": True,
+        },
+        {
+            "name": "Claude T2",
+            "tty": "ttys002",
+            "tab_title": "T2",
+            "tab_index": 2,
+            "session_id": "session-2",
+            "profile_name": "Hotkey",
+            "is_processing": False,
+            "is_at_shell_prompt": True,
+            "columns": 80,
+            "rows": 24,
+            "window_id": 102,
+            "window_index": 2,
+            "window_name": "Scratch",
+            "window_frontmost": False,
+        },
     ]
     args, kwargs = run_mock.call_args
     assert args[0][:2] == ["osascript", "-e"]
     assert "repeat with s in sessions of t" in args[0][2]
     assert 'tell application "iTerm2"' in args[0][2]
-    assert 'sessionName & "|||" & sessionTTY' in args[0][2]
+    assert 'set sessionName to ""' in args[0][2]
+    assert "set tabTitle to title of t" in args[0][2]
+    assert "set profileName to profile name of s" in args[0][2]
+    assert 'if sessionName is not "" and sessionTTY is not "" then' in args[0][2]
+    assert "set fieldSep to ASCII character 31" in args[0][2]
     assert kwargs == {"capture_output": True, "text": True, "timeout": 10}
 
 
@@ -136,6 +204,22 @@ def test_frontmost_session_name_strips_output(controller, subprocess_result):
     assert kwargs == {"capture_output": True, "text": True, "timeout": 5}
 
 
+def test_get_frontmost_slot_matches_tab_title(controller, subprocess_result):
+    controller.config["session_map"] = {"T1": "T1", "T2": "T2", "T3": "T3"}
+
+    with patch(
+        "clawdeck.host.subprocess.run",
+        return_value=subprocess_result(stdout="T1\x1f~/src/ClawDeck (-zsh)\n"),
+    ) as run_mock:
+        assert controller._get_frontmost_slot() == controller._session_label_key("T1")
+
+    args, kwargs = run_mock.call_args
+    assert args[0][:2] == ["osascript", "-e"]
+    assert 'title of current tab of current window' in args[0][2]
+    assert 'name of current session of current tab of current window' in args[0][2]
+    assert kwargs == {"capture_output": True, "text": True, "timeout": 5}
+
+
 def test_activate_session_matches_pattern_and_updates_active_slot(controller, subprocess_result):
     controller.config["session_map"]["T2"] = "Alpha Worker"
 
@@ -150,6 +234,8 @@ def test_activate_session_matches_pattern_and_updates_active_slot(controller, su
     assert args[0][:2] == ["osascript", "-e"]
     assert 'tell application "iTerm2"' in args[0][2]
     assert 'set matchPattern to "Alpha Worker"' in args[0][2]
+    assert "set tabTitle to title of t" in args[0][2]
+    assert "tabTitle contains matchPattern or sessionName contains matchPattern" in args[0][2]
     assert "tell t to select" in args[0][2]
     assert "reveal hotkey window" in args[0][2]
     assert kwargs == {"capture_output": True, "text": True, "timeout": 10}

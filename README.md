@@ -7,7 +7,7 @@ Built for the **Stream Deck Original** (15-key, 5x3 grid) on **macOS**.
 ## What It Does
 
 - Fixed 3-row layout: one row each for `T1`, `T2`, and `T3`
-- Match rows to iTerm2 sessions by configurable session-name substrings
+- Match rows to iTerm2 tabs by configurable tab-title substrings, with session-name fallback
 - Each row reflects Claude Code's live state via hooks
 - Tap a label key to activate that session
 - Tap a permission row label to approve with `y` without focusing the terminal
@@ -108,6 +108,8 @@ make util-deck-clear
 make util-deck-demo
 ```
 
+`make util-iterm` shows the current iTerm session name plus extra tab/window metadata such as tab title, window index, profile name, busy/prompt flags, and terminal size. ClawDeck matches rows against tab titles first, with session-name fallback for compatibility.
+
 Useful knobs:
 
 - `WAIT=5` keeps the process alive for a few seconds after painting the deck
@@ -128,7 +130,7 @@ This writes API pages to `docs/api/`, creates a landing page at `docs/index.html
 
 A settings page is available at `http://127.0.0.1:19830` while the controller is running. Type `settings` in the REPL to open it. From here you can configure:
 
-- **Session Mapping** — assign `T1`/`T2`/`T3` to iTerm2 session-name substrings
+- **Session Mapping** — assign `T1`/`T2`/`T3` to iTerm2 tab-title substrings, with session-name fallback
 - **Brightness** — Stream Deck brightness slider
 - **Colors** — pick custom colors for status states, nav keys, and active window
 - **Behavior** — hold threshold, poll interval, scroll speed, idle timeout
@@ -182,7 +184,7 @@ Claude Code hooks fire on state changes (tool use, permission prompts, idle) and
 
 ## Terminal Support
 
-The row mapper is built around **iTerm2** session names and TTYs. The controller terminal can be any terminal app, but the three Claude sessions you want on the deck should be iTerm2 sessions with stable names that match your `session_map` settings.
+The row mapper is built around **iTerm2** tab titles and TTYs, with session-name fallback. The controller terminal can be any terminal app, but the three Claude sessions you want on the deck should be iTerm2 tabs with stable titles that match your `session_map` settings.
 
 ## Contributing
 

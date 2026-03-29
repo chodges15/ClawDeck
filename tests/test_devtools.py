@@ -19,8 +19,8 @@ def test_collect_iterm_snapshot_includes_row_matches_and_raw_sessions(default_co
 
         def get_iterm_sessions(self):
             return [
-                {"name": "Claude T1", "tty": "ttys001"},
-                {"name": "Worker T2", "tty": "ttys002"},
+                {"name": "Claude shell", "tab_title": "T1", "tty": "ttys001"},
+                {"name": "Worker shell", "tab_title": "T2", "tty": "ttys002"},
             ]
 
         def frontmost_session_name(self):

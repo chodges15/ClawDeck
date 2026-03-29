@@ -1,14 +1,14 @@
-"""Tests for session-name matching and permission approval writes."""
+"""Tests for tab/session matching and permission approval writes."""
 
 from unittest.mock import patch
 
 
-def test_build_tty_map_matches_session_names_case_insensitively(controller):
+def test_build_tty_map_matches_tab_titles_case_insensitively(controller):
     controller.config["session_map"] = {"T1": "Alpha", "T2": "BETA", "T3": ""}
     sessions = [
-        {"name": "Claude alpha worker", "tty": "ttys001"},
-        {"name": "claude beta worker", "tty": "ttys002"},
-        {"name": "irrelevant", "tty": "ttys003"},
+        {"name": "Claude worker", "tab_title": "alpha", "tty": "ttys001"},
+        {"name": "claude worker", "tab_title": "beta", "tty": "ttys002"},
+        {"name": "irrelevant", "tab_title": "other", "tty": "ttys003"},
     ]
 
     with patch.object(controller, "_get_iterm_sessions", return_value=sessions):
@@ -21,7 +21,7 @@ def test_build_tty_map_matches_session_names_case_insensitively(controller):
 
 def test_build_tty_map_ignores_unmatched_patterns(controller):
     controller.config["session_map"] = {"T1": "missing", "T2": "", "T3": "third"}
-    sessions = [{"name": "Claude Third", "tty": "ttys004"}]
+    sessions = [{"name": "Claude worker", "tab_title": "Third", "tty": "ttys004"}]
 
     with patch.object(controller, "_get_iterm_sessions", return_value=sessions):
         with patch.object(controller, "_resolve_tty_cwd", return_value="/tmp/ttys004"):
@@ -34,8 +34,8 @@ def test_build_tty_map_ignores_unmatched_patterns(controller):
 def test_build_tty_map_falls_back_to_literal_session_names_when_unconfigured(controller):
     controller.config["session_map"] = {"T1": "", "T2": "", "T3": ""}
     sessions = [
-        {"name": "Claude T1", "tty": "ttys001"},
-        {"name": "Worker T3", "tty": "ttys003"},
+        {"name": "Claude worker", "tab_title": "T1", "tty": "ttys001"},
+        {"name": "Worker shell", "tab_title": "Worker T3", "tty": "ttys003"},
     ]
 
     with patch.object(controller, "_get_iterm_sessions", return_value=sessions):
@@ -46,12 +46,13 @@ def test_build_tty_map_falls_back_to_literal_session_names_when_unconfigured(con
     assert controller.slot_cwd == {0: "/tmp/ttys001", 10: "/tmp/ttys003"}
 
 
-def test_match_session_name_falls_back_to_literal_names_only_when_map_is_blank(controller):
+def test_match_session_info_prefers_tab_title_and_falls_back_to_name(controller):
     controller.config["session_map"] = {"T1": "", "T2": "", "T3": ""}
-    assert controller._match_session_name("Claude T1") == "T1"
+    assert controller._match_session_info({"tab_title": "Claude T1", "name": "shell"}) == "T1"
 
     controller.config["session_map"] = {"T1": "alpha", "T2": "", "T3": ""}
-    assert controller._match_session_name("Claude T2") is None
+    assert controller._match_session_info({"tab_title": "random", "name": "Claude alpha"}) == "T1"
+    assert controller._match_session_info({"tab_title": "Claude T2", "name": "shell"}) is None
 
 
 def test_approve_permission_writes_yes_to_tty(controller):
