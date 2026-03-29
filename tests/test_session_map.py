@@ -55,9 +55,9 @@ def test_match_session_name_falls_back_to_literal_names_only_when_map_is_blank(c
 def test_approve_permission_writes_yes_to_tty(controller):
     controller.slot_tty = {0: "ttys009"}
 
-    with patch("main.os.open", return_value=11) as open_mock:
-        with patch("main.os.write") as write_mock:
-            with patch("main.os.close") as close_mock:
+    with patch("clawdeck.host.os.open", return_value=11) as open_mock:
+        with patch("clawdeck.host.os.write") as write_mock:
+            with patch("clawdeck.host.os.close") as close_mock:
                 assert controller._approve_permission("T1") is True
 
     open_mock.assert_called_once()

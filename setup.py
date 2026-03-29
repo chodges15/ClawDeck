@@ -22,9 +22,9 @@ OPTIONS = {
         "NSAppleEventsUsageDescription": "ClawDeck needs to control terminal windows.",
         "NSAccessibilityUsageDescription": "ClawDeck needs accessibility access for window management and keystroke sending.",
     },
-    "packages": ["rumps", "StreamDeck", "PIL"],
+    "packages": ["clawdeck", "rumps", "StreamDeck", "PIL"],
     "includes": [
-        "main",
+        "clawdeck",
         "Quartz",
         "CoreFoundation",
         "objc",

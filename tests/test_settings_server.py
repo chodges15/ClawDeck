@@ -60,13 +60,11 @@ def make_handler(handler_cls, path, body=b"", headers=None):
 
 
 def start_fake_server(controller, monkeypatch, tmp_path):
-    import http.server
-
     FakeHTTPServer.instances.clear()
     FakeThread.instances.clear()
-    monkeypatch.setattr(http.server, "HTTPServer", FakeHTTPServer)
-    monkeypatch.setattr("threading.Thread", FakeThread)
-    monkeypatch.setattr("main.SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr("clawdeck.settings_server.HTTPServer", FakeHTTPServer)
+    monkeypatch.setattr("clawdeck.settings_server.threading.Thread", FakeThread)
+    monkeypatch.setattr("clawdeck.settings_server.PROJECT_ROOT", tmp_path)
     (tmp_path / "settings.html").write_text("<html>ok</html>")
     port = controller._start_settings_server()
     server = FakeHTTPServer.instances[0]
@@ -157,7 +155,7 @@ def test_settings_handler_swallow_brightness_errors(controller, monkeypatch, tmp
     controller.deck = broken_deck
     _port, handler_cls = start_fake_server(controller, monkeypatch, tmp_path)
 
-    with patch("main.logger.warning") as warn_mock:
+    with patch("clawdeck.settings_server.logger.warning") as warn_mock:
         with patch.object(controller, "_apply_config_update") as apply_mock:
             with patch.object(controller, "_update_all_buttons") as update_mock:
                 apply_mock.side_effect = lambda updates: controller.config.update({"brightness": 33})
@@ -189,7 +187,7 @@ def test_settings_handler_rejects_invalid_json(controller, monkeypatch, tmp_path
 def test_settings_handler_runs_hook_installer(controller, monkeypatch, tmp_path, subprocess_result):
     _port, handler_cls = start_fake_server(controller, monkeypatch, tmp_path)
 
-    with patch("main.subprocess.run", return_value=subprocess_result(stdout="installed\n")) as run_mock:
+    with patch("clawdeck.settings_server.subprocess.run", return_value=subprocess_result(stdout="installed\n")) as run_mock:
         handler = make_handler(handler_cls, "/api/hooks")
         handler.do_POST()
 
@@ -208,8 +206,6 @@ def test_settings_handler_unknown_post_returns_404(controller, monkeypatch, tmp_
 
 
 def test_start_settings_server_skips_busy_ports(controller, monkeypatch, tmp_path):
-    import http.server
-
     calls = {"count": 0}
 
     class BusyThenOK(FakeHTTPServer):
@@ -221,9 +217,9 @@ def test_start_settings_server_skips_busy_ports(controller, monkeypatch, tmp_pat
 
     FakeHTTPServer.instances.clear()
     FakeThread.instances.clear()
-    monkeypatch.setattr(http.server, "HTTPServer", BusyThenOK)
-    monkeypatch.setattr("threading.Thread", FakeThread)
-    monkeypatch.setattr("main.SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr("clawdeck.settings_server.HTTPServer", BusyThenOK)
+    monkeypatch.setattr("clawdeck.settings_server.threading.Thread", FakeThread)
+    monkeypatch.setattr("clawdeck.settings_server.PROJECT_ROOT", tmp_path)
     (tmp_path / "settings.html").write_text("<html>ok</html>")
 
     port = controller._start_settings_server()

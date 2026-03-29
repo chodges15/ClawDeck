@@ -4,12 +4,14 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-import main
+import clawdeck.controller as controller_module
+import clawdeck.host as host_module
+import clawdeck.input as input_module
 from tests.conftest import FakeDeck
 
 
 def test_check_accessibility_success(controller, subprocess_result):
-    with patch("main.subprocess.run", return_value=subprocess_result()) as run_mock:
+    with patch("clawdeck.host.subprocess.run", return_value=subprocess_result()) as run_mock:
         assert controller._check_accessibility() is True
 
     run_mock.assert_called_once_with(
@@ -26,7 +28,7 @@ def test_check_accessibility_success(controller, subprocess_result):
 
 def test_check_accessibility_opens_settings_and_retries(controller, subprocess_result):
     with patch(
-        "main.subprocess.run",
+        "clawdeck.host.subprocess.run",
         side_effect=[
             subprocess_result(returncode=1),
             subprocess_result(),
@@ -77,7 +79,7 @@ def test_get_iterm_sessions_parses_name_and_tty(controller, subprocess_result):
             "|||/dev/ttys003",
         ]
     )
-    with patch("main.subprocess.run", return_value=subprocess_result(stdout=stdout)) as run_mock:
+    with patch("clawdeck.host.subprocess.run", return_value=subprocess_result(stdout=stdout)) as run_mock:
         sessions = controller._get_iterm_sessions()
 
     assert sessions == [
@@ -94,7 +96,7 @@ def test_get_iterm_sessions_parses_name_and_tty(controller, subprocess_result):
 
 def test_resolve_tty_cwd_uses_last_shell_pid(controller, subprocess_result):
     with patch(
-        "main.subprocess.run",
+        "clawdeck.host.subprocess.run",
         side_effect=[
             subprocess_result(stdout="101 python\n202 -zsh\n303 bash\n"),
             subprocess_result(stdout="p303\nn/Users/chodges/src/ClawDeck\n"),
@@ -121,7 +123,7 @@ def test_resolve_tty_cwd_uses_last_shell_pid(controller, subprocess_result):
 
 def test_frontmost_session_name_strips_output(controller, subprocess_result):
     with patch(
-        "main.subprocess.run",
+        "clawdeck.host.subprocess.run",
         return_value=subprocess_result(stdout=" Claude T2 \n"),
     ) as run_mock:
         assert controller._frontmost_session_name() == "Claude T2"
@@ -136,7 +138,7 @@ def test_activate_session_matches_pattern_and_updates_active_slot(controller, su
     controller.config["session_map"]["T2"] = "Alpha Worker"
 
     with patch(
-        "main.subprocess.run",
+        "clawdeck.host.subprocess.run",
         return_value=subprocess_result(stdout="ok\n"),
     ) as run_mock:
         assert controller._activate_session("T2") is True
@@ -154,7 +156,7 @@ def test_activate_session_matches_pattern_and_updates_active_slot(controller, su
 def test_activate_session_returns_false_when_blank_entry_is_intentionally_unmapped(controller):
     controller.config["session_map"] = {"T1": "", "T2": "alpha", "T3": ""}
 
-    with patch("main.subprocess.run") as run_mock:
+    with patch("clawdeck.host.subprocess.run") as run_mock:
         assert controller._activate_session("T1") is False
 
     run_mock.assert_not_called()
@@ -163,12 +165,12 @@ def test_activate_session_returns_false_when_blank_entry_is_intentionally_unmapp
 def test_approve_permission_uses_tty_path_and_closes_fd_on_error(controller):
     controller.slot_tty = {0: "ttys009"}
 
-    with patch("main.os.open", return_value=11) as open_mock:
-        with patch("main.os.write", side_effect=OSError("blocked")) as write_mock:
-            with patch("main.os.close") as close_mock:
+    with patch("clawdeck.host.os.open", return_value=11) as open_mock:
+        with patch("clawdeck.host.os.write", side_effect=OSError("blocked")) as write_mock:
+            with patch("clawdeck.host.os.close") as close_mock:
                 assert controller._approve_permission("T1") is False
 
-    open_mock.assert_called_once_with("/dev/ttys009", main.os.O_WRONLY | main.os.O_NOCTTY)
+    open_mock.assert_called_once_with("/dev/ttys009", host_module.os.O_WRONLY | host_module.os.O_NOCTTY)
     write_mock.assert_called_once_with(11, b"y\n")
     close_mock.assert_called_once_with(11)
 
@@ -176,16 +178,16 @@ def test_approve_permission_uses_tty_path_and_closes_fd_on_error(controller):
 def test_trigger_mic_fn_posts_fn_key_twice(controller):
     controller.config["mic_command"] = "fn"
 
-    with patch("main.CGEventCreateKeyboardEvent", side_effect=lambda _, code, down: (code, down)):
-        with patch("main.CGEventPost") as post_mock:
-            with patch("main.time.sleep") as sleep_mock:
+    with patch("clawdeck.input.CGEventCreateKeyboardEvent", side_effect=lambda _, code, down: (code, down)):
+        with patch("clawdeck.input.CGEventPost") as post_mock:
+            with patch("clawdeck.input.time.sleep") as sleep_mock:
                 controller._trigger_mic()
 
     assert post_mock.call_args_list == [
-        call(main.kCGHIDEventTap, (main.FN_KEY_CODE, True)),
-        call(main.kCGHIDEventTap, (main.FN_KEY_CODE, False)),
-        call(main.kCGHIDEventTap, (main.FN_KEY_CODE, True)),
-        call(main.kCGHIDEventTap, (main.FN_KEY_CODE, False)),
+        call(input_module.kCGHIDEventTap, (input_module.FN_KEY_CODE, True)),
+        call(input_module.kCGHIDEventTap, (input_module.FN_KEY_CODE, False)),
+        call(input_module.kCGHIDEventTap, (input_module.FN_KEY_CODE, True)),
+        call(input_module.kCGHIDEventTap, (input_module.FN_KEY_CODE, False)),
     ]
     assert sleep_mock.call_args_list == [call(0.05), call(0.05)]
 
@@ -194,12 +196,12 @@ def test_trigger_mic_keystroke_applies_flags(controller):
     controller.config["mic_command"] = {
         "type": "keystroke",
         "key_code": 7,
-        "flags": main.MOD_COMMAND | main.MOD_SHIFT,
+        "flags": input_module.MOD_COMMAND | input_module.MOD_SHIFT,
     }
 
-    with patch("main.CGEventCreateKeyboardEvent", side_effect=lambda _, code, down: {"code": code, "down": down}) as create_mock:
-        with patch("main.CGEventSetFlags") as set_flags_mock:
-            with patch("main.CGEventPost") as post_mock:
+    with patch("clawdeck.input.CGEventCreateKeyboardEvent", side_effect=lambda _, code, down: {"code": code, "down": down}) as create_mock:
+        with patch("clawdeck.input.CGEventSetFlags") as set_flags_mock:
+            with patch("clawdeck.input.CGEventPost") as post_mock:
                 controller._trigger_mic()
 
     assert create_mock.call_args_list == [call(None, 7, True), call(None, 7, False)]
@@ -210,20 +212,20 @@ def test_trigger_mic_keystroke_applies_flags(controller):
 def test_trigger_mic_shell_command_uses_popen(controller):
     controller.config["mic_command"] = "shortcuts run Whisprflow"
 
-    with patch("main.subprocess.Popen") as popen_mock:
+    with patch("clawdeck.input.subprocess.Popen") as popen_mock:
         controller._trigger_mic()
 
     popen_mock.assert_called_once_with(
         "shortcuts run Whisprflow",
         shell=True,
-        stdout=main.subprocess.DEVNULL,
-        stderr=main.subprocess.DEVNULL,
+        stdout=input_module.subprocess.DEVNULL,
+        stderr=input_module.subprocess.DEVNULL,
     )
 
 
 def test_learn_keystroke_returns_when_event_tap_cannot_be_created(controller):
-    with patch("main.CGEventTapCreate", return_value=None):
-        with patch.object(controller, "_save_config") as save_mock:
+    with patch("clawdeck.input.CGEventTapCreate", return_value=None):
+        with patch.object(controller.config_store, "save") as save_mock:
             controller._learn_keystroke()
 
     save_mock.assert_not_called()
@@ -237,21 +239,21 @@ def test_learn_keystroke_captures_key_and_saves_config(controller):
         return object()
 
     def fake_runloop():
-        event = {"key_code": 0, "flags": main.MOD_COMMAND | main.MOD_SHIFT}
-        captured["callback"](None, main.kCGEventKeyDown, event, None)
+        event = {"key_code": 0, "flags": input_module.MOD_COMMAND | input_module.MOD_SHIFT}
+        captured["callback"](None, input_module.kCGEventKeyDown, event, None)
 
-    with patch("main.CGEventTapCreate", side_effect=fake_create):
-        with patch.object(main.CoreFoundation, "CFRunLoopRun", side_effect=fake_runloop):
-            with patch.object(controller, "_save_config") as save_mock:
+    with patch("clawdeck.input.CGEventTapCreate", side_effect=fake_create):
+        with patch.object(input_module.CoreFoundation, "CFRunLoopRun", side_effect=fake_runloop):
+            with patch.object(controller.config_store, "save") as save_mock:
                 controller._learn_keystroke()
 
     assert controller.config["mic_command"] == {
         "type": "keystroke",
         "key_code": 0,
-        "flags": main.MOD_COMMAND | main.MOD_SHIFT,
+        "flags": input_module.MOD_COMMAND | input_module.MOD_SHIFT,
         "label": "⇧⌘A",
     }
-    save_mock.assert_called_once_with()
+    save_mock.assert_called_once_with(controller.config)
 
 
 @pytest.mark.parametrize(
@@ -263,7 +265,7 @@ def test_learn_keystroke_captures_key_and_saves_config(controller):
     ],
 )
 def test_send_key_uses_expected_system_events_script(controller, key_name, expected_script):
-    with patch("main.subprocess.run") as run_mock:
+    with patch("clawdeck.input.subprocess.run") as run_mock:
         controller._send_key(key_name)
 
     run_mock.assert_called_once_with(["osascript", "-e", expected_script], capture_output=True)
@@ -281,9 +283,9 @@ def test_clear_status_dir_unlinks_files_and_falls_back_to_rm(controller, status_
             raise PermissionError("locked")
         return real_unlink(path_obj)
 
-    monkeypatch.setattr(main.Path, "unlink", selective_unlink, raising=False)
+    monkeypatch.setattr(controller_module.Path, "unlink", selective_unlink, raising=False)
 
-    with patch("main.subprocess.run") as run_mock:
+    with patch("clawdeck.controller.subprocess.run") as run_mock:
         controller._clear_status_dir()
 
     assert not removable.exists()
@@ -294,7 +296,7 @@ def test_run_exits_when_no_stream_deck_available(controller):
     manager = SimpleNamespace(enumerate=lambda: [])
 
     with patch.object(controller, "_check_accessibility") as access_mock:
-        with patch("main.DeviceManager", return_value=manager):
+        with patch("clawdeck.controller.DeviceManager", return_value=manager):
             with pytest.raises(SystemExit):
                 controller.run()
 
@@ -323,8 +325,8 @@ def test_run_initializes_first_working_device_and_shuts_down_cleanly(controller)
             with patch.object(controller, "_clear_status_dir") as clear_mock:
                 with patch.object(controller, "_update_all_buttons") as update_mock:
                     with patch.object(controller, "_start_settings_server", return_value=19830):
-                        with patch("main.DeviceManager", return_value=manager):
-                            with patch("main.threading.Thread", side_effect=FakeThread):
+                        with patch("clawdeck.controller.DeviceManager", return_value=manager):
+                            with patch("clawdeck.controller.threading.Thread", side_effect=FakeThread):
                                 with patch("builtins.input", side_effect=EOFError):
                                     controller.run()
 

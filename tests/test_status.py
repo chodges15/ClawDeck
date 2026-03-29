@@ -1,4 +1,4 @@
-from main import (
+from clawdeck.constants import (
     COLOR_BG_DEFAULT,
     COLOR_BG_IDLE,
     COLOR_BG_PERMISSION,

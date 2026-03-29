@@ -94,6 +94,26 @@ cd ClawDeck
 
 This starts the controller with a terminal REPL and a browser-based settings UI.
 
+## Utility Targets
+
+For debugging iTerm discovery and manually painting the deck without starting the full controller:
+
+```bash
+make util-iterm
+make util-iterm-frontmost
+make util-deck-list
+make util-deck-fill LABEL=TEST BG=ffb000 FG=000000
+make util-deck-key KEY=0 LABEL=T1 BG=ffb000 FG=000000
+make util-deck-clear
+make util-deck-demo
+```
+
+Useful knobs:
+
+- `WAIT=5` keeps the process alive for a few seconds after painting the deck
+- `BRIGHTNESS=40` sets deck brightness for the utility command
+- `BG` and `FG` are hex colors without the leading `#`
+
 ## Settings UI
 
 A settings page is available at `http://127.0.0.1:19830` while the controller is running. Type `settings` in the REPL to open it. From here you can configure:

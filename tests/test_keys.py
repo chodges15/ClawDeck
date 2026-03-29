@@ -1,6 +1,6 @@
 """Tests for keystroke formatting and font picking."""
 import pytest
-from main import _format_keystroke
+from clawdeck.input import format_keystroke as _format_keystroke
 
 # Modifier flag masks (from main.py)
 MOD_COMMAND = 1 << 20   # 0x100000

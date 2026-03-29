@@ -109,13 +109,8 @@ def _install_stub_modules():
 
 _install_stub_modules()
 
-import main  # noqa: E402
-from main import (  # noqa: E402
-    DeckController,
-    CONFIG_DEFAULTS,
-    _rgb_to_hex,
-    _hex_to_rgb,
-    _format_keystroke,
+from clawdeck.config import CONFIG_DEFAULTS, hex_to_rgb, rgb_to_hex  # noqa: E402
+from clawdeck.constants import (  # noqa: E402
     COLS,
     ROWS,
     KEYS_PER_ROW,
@@ -132,6 +127,10 @@ from main import (  # noqa: E402
     COLOR_FG_DEFAULT,
     NAV_BUTTON_STYLES,
 )
+from clawdeck.controller import DeckController  # noqa: E402
+from clawdeck.input import format_keystroke  # noqa: E402
+import clawdeck.controller as controller_module  # noqa: E402
+import clawdeck.status as status_module  # noqa: E402
 
 
 class FakeDeck:
@@ -191,14 +190,14 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture
 def controller():
     default_font = ImageFont.load_default() if hasattr(ImageFont, "load_default") else None
-    with patch.object(DeckController, "_load_config", return_value=copy.deepcopy(CONFIG_DEFAULTS)):
-        with patch.object(DeckController, "_init_fonts"):
+    with patch("clawdeck.controller.ConfigStore.load", return_value=copy.deepcopy(CONFIG_DEFAULTS)):
+        with patch("clawdeck.render.DeckRenderer._init_fonts"):
             ctrl = DeckController()
     ctrl.config = copy.deepcopy(CONFIG_DEFAULTS)
-    ctrl.font_xs = default_font
-    ctrl.font_sm = default_font
-    ctrl.font_md = default_font
-    ctrl.font_lg = default_font
+    ctrl.renderer.font_xs = default_font
+    ctrl.renderer.font_sm = default_font
+    ctrl.renderer.font_md = default_font
+    ctrl.renderer.font_lg = default_font
     return ctrl
 
 
@@ -222,7 +221,8 @@ def subprocess_result():
 
 @pytest.fixture
 def status_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(main, "STATUS_DIR", str(tmp_path))
+    monkeypatch.setattr(status_module, "STATUS_DIR", str(tmp_path))
+    monkeypatch.setattr(controller_module, "STATUS_DIR", str(tmp_path))
     return tmp_path
 
 

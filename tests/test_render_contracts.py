@@ -2,14 +2,18 @@ from unittest.mock import MagicMock, patch
 
 from PIL import Image
 
-import main
-from main import COLOR_BG_DEFAULT, COLOR_BG_NAV_EMPTY, COLOR_BG_PERMISSION
+from clawdeck.constants import (
+    COLOR_BG_ACTIVE,
+    COLOR_BG_DEFAULT,
+    COLOR_BG_NAV_EMPTY,
+    COLOR_BG_PERMISSION,
+)
 
 
 def test_button_dimensions_uses_pil_helper_image_size(controller, fake_deck):
     controller.deck = fake_deck
 
-    with patch("main.PILHelper.create_image", return_value=Image.new("RGB", (96, 64))) as create_mock:
+    with patch("clawdeck.render.PILHelper.create_image", return_value=Image.new("RGB", (96, 64))) as create_mock:
         assert controller._button_dimensions() == (96, 64)
 
     create_mock.assert_called_once_with(fake_deck, background=COLOR_BG_DEFAULT)
@@ -18,7 +22,7 @@ def test_button_dimensions_uses_pil_helper_image_size(controller, fake_deck):
 def test_button_dimensions_falls_back_when_pil_helper_fails(controller, fake_deck):
     controller.deck = fake_deck
 
-    with patch("main.PILHelper.create_image", side_effect=RuntimeError("boom")):
+    with patch("clawdeck.render.PILHelper.create_image", side_effect=RuntimeError("boom")):
         assert controller._button_dimensions() == (72, 72)
 
 
@@ -54,9 +58,9 @@ def test_render_button_truncates_long_subtitle(controller, fake_deck):
     recorder.textbbox.side_effect = fake_textbbox
     recorder.text.side_effect = fake_text
 
-    with patch("main.PILHelper.create_image", return_value=Image.new("RGB", (72, 72))):
-        with patch("main.PILHelper.to_native_format", side_effect=lambda deck, image: image):
-            with patch("main.ImageDraw.Draw", return_value=recorder):
+    with patch("clawdeck.render.PILHelper.create_image", return_value=Image.new("RGB", (72, 72))):
+        with patch("clawdeck.render.PILHelper.to_native_format", side_effect=lambda deck, image: image):
+            with patch("clawdeck.render.ImageDraw.Draw", return_value=recorder):
                 controller._render_button("", subtitle="this subtitle is intentionally too wide")
 
     assert len(recorder.text_calls) == 1
@@ -186,4 +190,4 @@ def test_draw_nav_mode_uses_nav_styles_and_active_border(controller, fake_deck):
         "border": None,
     }
     assert fake_deck.images[10]["label"] == "MIC"
-    assert fake_deck.images[10]["border"] == controller._color("active", main.COLOR_BG_ACTIVE)
+    assert fake_deck.images[10]["border"] == controller._color("active", COLOR_BG_ACTIVE)

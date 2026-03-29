@@ -2,20 +2,20 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import main
-from main import MODE_NAV, MODE_ROW
+import clawdeck.controller as controller_module
+from clawdeck.constants import MODE_NAV, MODE_ROW
 
 
 def test_handle_key_hold_activates_session_updates_buttons_and_triggers_mic(controller, monkeypatch):
     controller.mode = MODE_ROW
     controller.config["hold_threshold"] = 0.5
-    monkeypatch.setattr(main.time, "time", lambda: 10.0)
+    monkeypatch.setattr(controller_module.time, "time", lambda: 10.0)
     controller._handle_key(0, True)
 
     with patch.object(controller, "_activate_session") as activate_mock:
         with patch.object(controller, "_update_all_buttons") as update_mock:
             with patch.object(controller, "_trigger_mic") as mic_mock:
-                monkeypatch.setattr(main.time, "time", lambda: 10.8)
+                monkeypatch.setattr(controller_module.time, "time", lambda: 10.8)
                 controller._handle_key(0, False)
 
     activate_mock.assert_called_once_with("T1")
@@ -66,11 +66,11 @@ def test_handle_key_release_without_press_is_ignored(controller):
 def test_handle_key_short_press_routes_to_row_handler(controller, monkeypatch):
     controller.mode = MODE_ROW
     controller.config["hold_threshold"] = 0.5
-    monkeypatch.setattr(main.time, "time", lambda: 10.0)
+    monkeypatch.setattr(controller_module.time, "time", lambda: 10.0)
     controller._handle_key(0, True)
 
     with patch.object(controller, "_handle_row_key") as row_mock:
-        monkeypatch.setattr(main.time, "time", lambda: 10.1)
+        monkeypatch.setattr(controller_module.time, "time", lambda: 10.1)
         controller._handle_key(0, False)
 
     row_mock.assert_called_once_with("T1")
@@ -338,7 +338,7 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
     controller._last_blink_toggle = 0
     controller.blink_on = True
 
-    monkeypatch.setattr(main.time, "time", lambda: 100.0)
+    monkeypatch.setattr(controller_module.time, "time", lambda: 100.0)
 
     def fake_build():
         controller.slot_cwd = {0: "/tmp/from-map"}
@@ -356,7 +356,7 @@ def test_poll_active_loop_updates_buttons_when_row_state_changes(controller, mon
                 with patch.object(controller, "_read_status_files", side_effect=fake_read) as read_mock:
                     with patch.object(controller, "_advance_scroll_offsets", return_value=True) as scroll_mock:
                         with patch.object(controller, "_update_all_buttons") as update_mock:
-                            monkeypatch.setattr(main.time, "sleep", fake_sleep)
+                            monkeypatch.setattr(controller_module.time, "sleep", fake_sleep)
                             controller._poll_active_loop()
 
     build_mock.assert_called_once_with()
@@ -378,9 +378,9 @@ def test_poll_active_loop_logs_errors_and_keeps_going(controller, monkeypatch):
         controller.running = False
 
     with patch.object(controller, "_build_tty_map", side_effect=RuntimeError("boom")):
-        with patch("main.logger.log") as log_mock:
-            monkeypatch.setattr(main.time, "sleep", fake_sleep)
-            monkeypatch.setattr(main.time, "time", lambda: 100.0)
+        with patch("clawdeck.controller.logger.log") as log_mock:
+            monkeypatch.setattr(controller_module.time, "sleep", fake_sleep)
+            monkeypatch.setattr(controller_module.time, "time", lambda: 100.0)
             controller._poll_active_loop()
 
     log_mock.assert_called_once()

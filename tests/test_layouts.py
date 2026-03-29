@@ -1,4 +1,4 @@
-from main import KEYS_PER_ROW, SESSIONS, TOTAL_KEYS
+from clawdeck.constants import KEYS_PER_ROW, SESSIONS, TOTAL_KEYS
 
 
 def test_key_to_session_maps_each_row(controller):

@@ -1,6 +1,6 @@
 """Tests for config defaults and merging."""
 
-from main import CONFIG_DEFAULTS
+from clawdeck.config import CONFIG_DEFAULTS
 
 
 def test_defaults_has_required_keys():

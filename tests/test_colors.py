@@ -1,5 +1,5 @@
 import pytest
-from main import _rgb_to_hex, _hex_to_rgb
+from clawdeck.config import hex_to_rgb as _hex_to_rgb, rgb_to_hex as _rgb_to_hex
 
 
 def test_rgb_to_hex_standard():
