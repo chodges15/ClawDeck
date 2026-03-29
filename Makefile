@@ -31,34 +31,11 @@ docs-pydoc:
 	mkdir -p $(PYDOC_OUTPUT_DIR)
 	rm -f $(PYDOC_OUTPUT_DIR)/*.html
 	cd $(PYDOC_OUTPUT_DIR) && PYTHONPATH=$(CURDIR) $(CURDIR)/$(PYTHON) -m pydoc -w $(PYDOC_MODULES)
-	@printf '%s\n' \
-	'<!DOCTYPE html>' \
-	'<html lang="en">' \
-	'<head>' \
-	'  <meta charset="utf-8">' \
-	'  <meta name="viewport" content="width=device-width, initial-scale=1">' \
-	'  <title>ClawDeck API Docs</title>' \
-	'  <style>' \
-	'    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 3rem auto; max-width: 48rem; padding: 0 1.5rem; line-height: 1.5; }' \
-	'    h1 { margin-bottom: 0.5rem; }' \
-	'    ul { padding-left: 1.25rem; }' \
-	'  </style>' \
-	'</head>' \
-	'<body>' \
-	'  <h1>ClawDeck API Docs</h1>' \
-	'  <p>Generated with <code>make docs-pydoc</code>.</p>' \
-	'  <ul>' \
-	'    <li><a href="api/clawdeck.html">Package overview</a></li>' \
-	'    <li><a href="api/clawdeck.controller.html">Controller module</a></li>' \
-	'    <li><a href="api/clawdeck.devtools.html">Developer tools</a></li>' \
-	'    <li><a href="api/main.html">CLI entrypoint</a></li>' \
-	'  </ul>' \
-	'</body>' \
-	'</html>' > docs/index.html
+	$(CURDIR)/$(PYTHON) scripts/postprocess_pydoc.py
 	touch docs/.nojekyll
 
 clean-pydoc:
-	rm -rf $(PYDOC_OUTPUT_DIR) docs/index.html docs/.nojekyll
+	rm -rf $(PYDOC_OUTPUT_DIR) docs/index.html docs/pydoc.css docs/.nojekyll
 
 util-iterm:
 	$(DEVTOOLS) iterm info
