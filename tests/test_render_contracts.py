@@ -9,6 +9,7 @@ from clawdeck.constants import (
     COLOR_BG_DEFAULT,
     COLOR_BG_NAV_EMPTY,
     COLOR_BG_PERMISSION,
+    COLOR_BG_WORKING,
 )
 
 
@@ -147,7 +148,7 @@ def test_draw_row_mode_permission_row_shows_static_session_info(controller, fake
         {"label": "DIR", "subtitle": "project", "bg": COLOR_BG_DEFAULT, "border": None},
         {"label": "⎇", "subtitle": "feature/session-info", "bg": COLOR_BG_DEFAULT, "border": None},
         {"label": "DIFF", "subtitle": "review", "bg": COLOR_BG_DEFAULT, "border": None},
-        {"label": "▶", "subtitle": "continue", "bg": COLOR_BG_DEFAULT, "border": None},
+        {"label": "Continue", "subtitle": None, "bg": COLOR_BG_WORKING, "border": None},
     ]
 
 
@@ -171,8 +172,9 @@ def test_draw_row_mode_uses_hook_cwd_for_directory_cell(controller, fake_deck):
     assert fake_deck.images[2]["subtitle"] == "main"
     assert fake_deck.images[3]["label"] == "DIFF"
     assert fake_deck.images[3]["subtitle"] == "review"
-    assert fake_deck.images[4]["label"] == "▶"
-    assert fake_deck.images[4]["subtitle"] == "continue"
+    assert fake_deck.images[4]["label"] == "Continue"
+    assert fake_deck.images[4]["subtitle"] is None
+    assert fake_deck.images[4]["bg"] == COLOR_BG_WORKING
 
 
 def test_draw_row_mode_does_not_fallback_to_tty_shell_cwd(controller, fake_deck):
@@ -205,6 +207,23 @@ def test_draw_row_mode_overlays_diff_feedback(controller, fake_deck):
 
     assert fake_deck.images[3]["label"] == "DIFF"
     assert fake_deck.images[3]["subtitle"] == "clean"
+
+
+def test_draw_row_mode_working_row_shows_red_cancel_button(controller, fake_deck):
+    controller.deck = fake_deck
+    controller.slot_tty = {0: "ttys001"}
+    controller.slot_status = {0: "working"}
+
+    def fake_render(label, bg=COLOR_BG_DEFAULT, fg=None, border_color=None, border_width=8, subtitle=None):
+        return {"label": label, "subtitle": subtitle, "bg": bg, "border": border_color}
+
+    controller._render_button = fake_render
+
+    controller._draw_row_mode()
+
+    assert fake_deck.images[4]["label"] == "Cancel"
+    assert fake_deck.images[4]["subtitle"] is None
+    assert fake_deck.images[4]["bg"] == COLOR_BG_PERMISSION
 
 
 def test_draw_nav_mode_uses_nav_styles_and_active_border(controller, fake_deck):

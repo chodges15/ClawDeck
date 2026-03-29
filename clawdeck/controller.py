@@ -16,6 +16,10 @@ from .constants import (
     ACTIVE_CWD_REFRESH_SEC,
     BLINK_INTERVAL,
     BRIGHTNESS,
+    COLOR_BG_PERMISSION,
+    COLOR_BG_WORKING,
+    COLOR_FG_PERMISSION,
+    COLOR_FG_WORKING,
     HOLD_THRESHOLD_SEC,
     MODE_NAV,
     MODE_ROW,
@@ -419,6 +423,21 @@ class DeckController:
                 return tool_name
         return self.state.slot_tty.get(label_key)
 
+    def _continue_button_spec(self, label_key):
+        if self.state.slot_status.get(label_key) == "working":
+            return {
+                "label": "Cancel",
+                "subtitle": None,
+                "bg": self._color("permission", COLOR_BG_PERMISSION),
+                "fg": COLOR_FG_PERMISSION,
+            }
+        return {
+            "label": "Continue",
+            "subtitle": None,
+            "bg": self._color("working", COLOR_BG_WORKING),
+            "fg": COLOR_FG_WORKING,
+        }
+
     def _row_info_specs(self, label_key):
         raw_cwd = self.state.slot_hook_cwd.get(label_key)
         cwd = None
@@ -431,10 +450,7 @@ class DeckController:
             {"label": "DIR", "subtitle": cwd or raw_cwd or "Unknown"},
             {"label": "⎇", "subtitle": branch or "No repo"},
             {"label": "DIFF", "subtitle": "review"},
-            {
-                "label": "▶",
-                "subtitle": "continue",
-            },
+            self._continue_button_spec(label_key),
         ]
         for info_index, spec in enumerate(specs):
             feedback = self.state.info_feedback.get((label_key, info_index))
@@ -480,8 +496,8 @@ class DeckController:
                     key,
                     self._render_button(
                         spec["label"],
-                        bg=(0, 0, 0),
-                        fg=(255, 255, 255),
+                        bg=spec.get("bg", (0, 0, 0)),
+                        fg=spec.get("fg", (255, 255, 255)),
                         subtitle=spec["subtitle"],
                     ),
                 )
@@ -656,7 +672,11 @@ class DeckController:
             self._update_all_buttons()
             return
         if info_index == 3:
-            self._write_session_text(session, "continue\n")
+            label_key = session_label_key(session)
+            if self.state.slot_status.get(label_key) == "working":
+                self._write_session_text(session, "\x03")
+                return
+            self._write_session_text(session, "continue\r")
 
     def _handle_nav_key(self, key):
         action = NAV_KEYMAP.get(key)

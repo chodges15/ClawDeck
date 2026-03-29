@@ -213,7 +213,16 @@ def test_handle_info_key_play_button_writes_continue_to_tty(controller):
     with patch.object(controller, "_write_session_text") as write_mock:
         controller._handle_info_key("T1", 3)
 
-    write_mock.assert_called_once_with("T1", "continue\n")
+    write_mock.assert_called_once_with("T1", "continue\r")
+
+
+def test_handle_info_key_play_button_writes_ctrl_c_when_slot_is_working(controller):
+    controller.slot_status = {0: "working"}
+
+    with patch.object(controller, "_write_session_text") as write_mock:
+        controller._handle_info_key("T1", 3)
+
+    write_mock.assert_called_once_with("T1", "\x03")
 
 
 def test_clear_expired_info_feedback_removes_expired_entries(controller):
