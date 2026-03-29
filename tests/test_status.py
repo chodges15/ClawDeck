@@ -77,6 +77,12 @@ def test_info_key_resolves_to_same_label_style(controller):
     assert bg == COLOR_BG_IDLE
 
 
+def test_session_name_resolves_to_label_style(controller):
+    controller.slot_status = {0: "idle"}
+    bg, fg, border = controller._get_slot_style("T1")
+    assert bg == COLOR_BG_IDLE
+
+
 def test_nav_style_number_keys(controller):
     for key, expected_label in enumerate(["1", "2", "3", "4", "5"]):
         result = controller._get_nav_style(key)
