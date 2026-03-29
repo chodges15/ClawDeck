@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module overlay</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">overlay</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/overlay.py">/Users/chodges/src/ClawDeck/overlay.py</a></td></tr></table>
+    <p><span class="code">Overlay&nbsp;helper:&nbsp;draws&nbsp;an&nbsp;amber&nbsp;rounded-corner&nbsp;border&nbsp;around&nbsp;a&nbsp;terminal&nbsp;window.<br>
+&nbsp;<br>
+Uses&nbsp;a&nbsp;single&nbsp;transparent&nbsp;NSWindow&nbsp;with&nbsp;a&nbsp;CALayer&nbsp;border&nbsp;(cornerRadius&nbsp;+<br>
+borderWidth)&nbsp;—&nbsp;no&nbsp;custom&nbsp;NSView&nbsp;needed.&nbsp;Reads&nbsp;position&nbsp;from<br>
+/tmp/deck-overlay.json&nbsp;every&nbsp;100ms.<br>
+&nbsp;<br>
+Spawned&nbsp;by&nbsp;main.py&nbsp;—&nbsp;not&nbsp;meant&nbsp;to&nbsp;be&nbsp;run&nbsp;standalone&nbsp;(though&nbsp;it&nbsp;can&nbsp;be&nbsp;for&nbsp;testing).</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="os.html">os</a><br>
+<a href="json.html">json</a><br>
+</td><td class="multicolumn"><a href="objc.html">objc</a><br>
+<a href="signal.html">signal</a><br>
+</td><td class="multicolumn"><a href="sys.html">sys</a><br>
+</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text">objc._PyObjCIntermediate_NSObject(objc.NSObject)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="overlay.html#OverlayTick">OverlayTick</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="OverlayTick">class <strong>OverlayTick</strong></a>(objc._PyObjCIntermediate_NSObject)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#OverlayTick">OverlayTick</a>(*args,&nbsp;**kwds)<br>
+&nbsp;<br>
+Minimal&nbsp;NSObject&nbsp;—&nbsp;only&nbsp;exposes&nbsp;the&nbsp;timer&nbsp;callback&nbsp;to&nbsp;avoid<br>
+PyObjC&nbsp;selector&nbsp;conflicts&nbsp;with&nbsp;helper&nbsp;methods.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="overlay.html#OverlayTick">OverlayTick</a></dd>
+<dd>objc._PyObjCIntermediate_NSObject</dd>
+<dd>objc.NSObject</dd>
+<dd>objc.objc.objc_object</dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="OverlayTick-CA_interpolateValues___interpolator_"><strong>CA_interpolateValues___interpolator_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)CA_interpolateValues___interpolator_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-SCN_setupDisplayLinkWithQueue_screen_policy_"><strong>SCN_setupDisplayLinkWithQueue_screen_policy_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)SCN_setupDisplayLinkWithQueue_screen_policy_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-__new__"><strong>__new__</strong></a>(cls, *args, **kwds)<span class="grey"><span class="heading-text"> from overlay.OverlayTick</span></span></dt><dd><span class="code"><a href="#OverlayTick">OverlayTick</a>():<br>
+&nbsp;&nbsp;&nbsp;returns&nbsp;cls.alloc().<a href="#OverlayTick-init">init</a>()<br>
+&nbsp;<br>
+The&nbsp;order&nbsp;of&nbsp;keyword&nbsp;arguments&nbsp;is&nbsp;significant</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ams_generateDescriptionWithSubObjects_"><strong>ams_generateDescriptionWithSubObjects_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)ams_generateDescriptionWithSubObjects_:(id)arg0;</span></dd></dl>
+
+<strong>bundleForClass</strong> = &lt;selector bundleForClass of &lt;objective-c class OverlayTick&gt;&gt;
+<dl><dt><a name="OverlayTick-ck_bindInStatement_atIndex_"><strong>ck_bindInStatement_atIndex_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)ck_bindInStatement_atIndex_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_appendSQLConstantValueToString_"><strong>cksqlcs_appendSQLConstantValueToString_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_appendSQLConstantValueToString_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_archivedObjectBindingValue_"><strong>cksqlcs_archivedObjectBindingValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_archivedObjectBindingValue_:(id*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindArchivedObject_index_db_"><strong>cksqlcs_bindArchivedObject_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindArchivedObject_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindBlob_index_db_"><strong>cksqlcs_bindBlob_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindBlob_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindDouble_index_db_"><strong>cksqlcs_bindDouble_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindDouble_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindInt64_index_db_"><strong>cksqlcs_bindInt64_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindInt64_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindText_index_db_"><strong>cksqlcs_bindText_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindText_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_bindValue_index_db_"><strong>cksqlcs_bindValue_index_db_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)cksqlcs_bindValue_index_db_:(sqlite3_stmt*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_blobBindingValue_destructor_error_"><strong>cksqlcs_blobBindingValue_destructor_error_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void*)cksqlcs_blobBindingValue_destructor_error_:(unsigned&nbsp;long&nbsp;long*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_doubleBindingValue_"><strong>cksqlcs_doubleBindingValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(double)cksqlcs_doubleBindingValue_:(id*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_int64BindingValue_"><strong>cksqlcs_int64BindingValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(long&nbsp;long)cksqlcs_int64BindingValue_:(id*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-cksqlcs_textBindingValue_destructor_error_"><strong>cksqlcs_textBindingValue_destructor_error_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void*)cksqlcs_textBindingValue_destructor_error_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ef_observeKeyPath_options_autoCancelToken_usingBlock_"><strong>ef_observeKeyPath_options_autoCancelToken_usingBlock_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)ef_observeKeyPath_options_autoCancelToken_usingBlock_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ef_observeKeyPath_options_usingBlock_"><strong>ef_observeKeyPath_options_usingBlock_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)ef_observeKeyPath_options_usingBlock_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ef_onScheduler_"><strong>ef_onScheduler_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)ef_onScheduler_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-if_setValueIfNonNil_forKey_"><strong>if_setValueIfNonNil_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)if_setValueIfNonNil_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-if_setValueIfYES_forKey_"><strong>if_setValueIfYES_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)if_setValueIfYES_forKey_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-init"><strong>init</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)init;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-init"><strong>init</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)init;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-init"><strong>init</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)init;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSArray__"><strong>isNSArray__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSArray__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSCFConstantString__"><strong>isNSCFConstantString__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSCFConstantString__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSData__"><strong>isNSData__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSData__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSDate__"><strong>isNSDate__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSDate__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSDictionary__"><strong>isNSDictionary__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSDictionary__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSNumber__"><strong>isNSNumber__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSNumber__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSObject__"><strong>isNSObject__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSObject__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSOrderedSet__"><strong>isNSOrderedSet__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSOrderedSet__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSSet__"><strong>isNSSet__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSSet__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSString__"><strong>isNSString__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSString__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSTimeZone__"><strong>isNSTimeZone__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSTimeZone__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSURL__"><strong>isNSURL__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSURL__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNSValue__"><strong>isNSValue__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(bool)isNSValue__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-newTaggedNSStringWithASCIIBytes__length__"><strong>newTaggedNSStringWithASCIIBytes__length__</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)newTaggedNSStringWithASCIIBytes__length__:(char*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_afterDelay_"><strong>pep_afterDelay_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_afterDelay_:(double)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_getInvocation_"><strong>pep_getInvocation_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_getInvocation_:(id*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onOperationQueue_"><strong>pep_onOperationQueue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_onOperationQueue_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onOperationQueue_priority_"><strong>pep_onOperationQueue_priority_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_onOperationQueue_priority_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onThread_"><strong>pep_onThread_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_onThread_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onThread_immediateForMatchingThread_"><strong>pep_onThread_immediateForMatchingThread_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(id)pep_onThread_immediateForMatchingThread_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setSwiftUI_accessibilityStoredLabel_"><strong>setSwiftUI_accessibilityStoredLabel_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)setSwiftUI_accessibilityStoredLabel_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setSwiftUI_accessibilityStoredLinkRotor_"><strong>setSwiftUI_accessibilityStoredLinkRotor_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)setSwiftUI_accessibilityStoredLinkRotor_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-set_accessibilityAllowsAutomationElements_"><strong>set_accessibilityAllowsAutomationElements_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)set_accessibilityAllowsAutomationElements_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-swiftui_addManagedSubview_positioned_relativeTo_"><strong>swiftui_addManagedSubview_positioned_relativeTo_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)swiftui_addManagedSubview_positioned_relativeTo_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-swiftui_insertManagedSubview_atIndex_"><strong>swiftui_insertManagedSubview_atIndex_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">-&nbsp;(void)swiftui_insertManagedSubview_atIndex_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-tick_"><strong>tick_</strong></a>(arg0, /)</dt><dd><span class="code">Called&nbsp;every&nbsp;CHECK_INTERVAL&nbsp;by&nbsp;NSTimer.</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-tick_"><strong>tick_</strong></a>(arg0, /)</dt><dd><span class="code">Called&nbsp;every&nbsp;CHECK_INTERVAL&nbsp;by&nbsp;NSTimer.</span></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__objc_python_subclass__</strong> = True</dl>
+
+<dl><dt><strong>__pyobjc_protocols__</strong> = ()</dl>
+
+<hr>
+Methods inherited from objc.NSObject:<br>
+<dl><dt><a name="OverlayTick-pyobjc_performSelectorInBackground_withObject_"><strong>pyobjc_performSelectorInBackground_withObject_</strong></a>(arg0, arg1, /)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelectorInBackground:withObject:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelectorOnMainThread_withObject_"><strong>pyobjc_performSelectorOnMainThread_withObject_</strong></a>(arg0, arg1, /)</dt></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelectorOnMainThread_withObject_modes_"><strong>pyobjc_performSelectorOnMainThread_withObject_modes_</strong></a>(arg0, arg1, arg2, /)</dt><dd><span class="code">Similar&nbsp;to&nbsp;performSelectorOnMainThread:withObject:waitUntilDone:modes:,<br>
+but:<br>
+&nbsp;<br>
+-&nbsp;always&nbsp;waits&nbsp;until&nbsp;done<br>
+-&nbsp;returns&nbsp;the&nbsp;return&nbsp;value&nbsp;of&nbsp;the&nbsp;called&nbsp;method<br>
+-&nbsp;if&nbsp;the&nbsp;called&nbsp;method&nbsp;raises&nbsp;an&nbsp;exception,&nbsp;this&nbsp;will&nbsp;raise&nbsp;the&nbsp;same<br>
+&nbsp;&nbsp;&nbsp;exception</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelectorOnMainThread_withObject_waitUntilDone_"><strong>pyobjc_performSelectorOnMainThread_withObject_waitUntilDone_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    /
+)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelectorOnMainThread:withObject:waitUntilDone:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop&nbsp;in&nbsp;the&nbsp;main&nbsp;thread).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelectorOnMainThread_withObject_waitUntilDone_modes_"><strong>pyobjc_performSelectorOnMainThread_withObject_waitUntilDone_modes_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelectorOnMainThread:withObject:waitUntilDone:modes:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop&nbsp;in&nbsp;the&nbsp;main&nbsp;thread).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_onThread_withObject_"><strong>pyobjc_performSelector_onThread_withObject_</strong></a>(arg0, arg1, arg2, /)</dt></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_onThread_withObject_modes_"><strong>pyobjc_performSelector_onThread_withObject_modes_</strong></a>(arg0, arg1, arg2, arg3, /)</dt></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_onThread_withObject_waitUntilDone_"><strong>pyobjc_performSelector_onThread_withObject_waitUntilDone_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelector:onThread:withObject:waitUntilDone:&nbsp;that<br>
+will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop&nbsp;on&nbsp;the&nbsp;other&nbsp;thread).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_onThread_withObject_waitUntilDone_modes_"><strong>pyobjc_performSelector_onThread_withObject_waitUntilDone_modes_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    /
+)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelector:onThread:withObject:waitUntilDone:modes:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop&nbsp;on&nbsp;the&nbsp;other&nbsp;thread).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_withObject_afterDelay_"><strong>pyobjc_performSelector_withObject_afterDelay_</strong></a>(arg0, arg1, arg2, /)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelector:withObject:afterDelay:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop).</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pyobjc_performSelector_withObject_afterDelay_inModes_"><strong>pyobjc_performSelector_withObject_afterDelay_inModes_</strong></a>(arg0, arg1, arg2, arg3, /)</dt><dd><span class="code">A&nbsp;version&nbsp;of&nbsp;performSelector:withObject:afterDelay:inModes:<br>
+that&nbsp;will&nbsp;log&nbsp;exceptions&nbsp;in&nbsp;the&nbsp;called&nbsp;method&nbsp;(instead&nbsp;of&nbsp;aborting&nbsp;the<br>
+NSRunLoop).</span></dd></dl>
+
+<hr>
+Methods inherited from importlib._bootstrap.NSObject:<br>
+<dl><dt><a name="OverlayTick-CAMLType"><strong>CAMLType</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CAMLType;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CAMLTypeForKey_"><strong>CAMLTypeForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CAMLTypeForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CAMLTypeSupportedForKey_"><strong>CAMLTypeSupportedForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)CAMLTypeSupportedForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_addValue_multipliedBy_"><strong>CA_addValue_multipliedBy_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CA_addValue_multipliedBy_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_archivingValueForKey_"><strong>CA_archivingValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CA_archivingValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_copyNumericValue_"><strong>CA_copyNumericValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)CA_copyNumericValue_:(double*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_copyRenderValue"><strong>CA_copyRenderValue</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Object*)CA_copyRenderValue;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_copyRenderValueWithColorspace_"><strong>CA_copyRenderValueWithColorspace_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Object*)CA_copyRenderValueWithColorspace_:(CGColorSpaceRef)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_distanceToValue_"><strong>CA_distanceToValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)CA_distanceToValue_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_initialize_for_decoding"><strong>CA_initialize_for_decoding</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)CA_initialize_for_decoding;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_interpolateValue_byFraction_"><strong>CA_interpolateValue_byFraction_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CA_interpolateValue_byFraction_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_numericValueCount"><strong>CA_numericValueCount</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)CA_numericValueCount;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_prepareRenderValue"><strong>CA_prepareRenderValue</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)CA_prepareRenderValue;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_roundToIntegerFromValue_"><strong>CA_roundToIntegerFromValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CA_roundToIntegerFromValue_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CA_validateValue_forKey_"><strong>CA_validateValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)CA_validateValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKAssignToContainerWithID_"><strong>CKAssignToContainerWithID_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)CKAssignToContainerWithID_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKDescription"><strong>CKDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKDescriptionClassName"><strong>CKDescriptionClassName</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKDescriptionClassName;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKDescriptionPropertiesWithPublic_private_shouldExpand_"><strong>CKDescriptionPropertiesWithPublic_private_shouldExpand_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKDescriptionPropertiesWithPublic_private_shouldExpand_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKDescriptionRedact_avoidShortDescription_"><strong>CKDescriptionRedact_avoidShortDescription_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKDescriptionRedact_avoidShortDescription_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKDescriptionShouldPrintPointer"><strong>CKDescriptionShouldPrintPointer</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)CKDescriptionShouldPrintPointer;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKExpandedDescription"><strong>CKExpandedDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKExpandedDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKObjectDescriptionRedact_"><strong>CKObjectDescriptionRedact_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKObjectDescriptionRedact_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKObjectDescriptionRedact_avoidShortDescription_"><strong>CKObjectDescriptionRedact_avoidShortDescription_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKObjectDescriptionRedact_avoidShortDescription_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKPropertiesDescription"><strong>CKPropertiesDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKPropertiesDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKRedactedDescription"><strong>CKRedactedDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKRedactedDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CKUnredactedDescription"><strong>CKUnredactedDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CKUnredactedDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-CalClassName"><strong>CalClassName</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)CalClassName;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-IKImageRepresentationWithType_"><strong>IKImageRepresentationWithType_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)IKImageRepresentationWithType_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-NSLifeguard_autorelease"><strong>NSLifeguard_autorelease</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)NSLifeguard_autorelease;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-NSRepresentation"><strong>NSRepresentation</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)NSRepresentation;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-NSRepresentation"><strong>NSRepresentation</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)NSRepresentation;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-NS_observationForKeyPath_options_block_"><strong>NS_observationForKeyPath_options_block_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)NS_observationForKeyPath_options_block_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-NS_observationForKeyPaths_options_block_"><strong>NS_observationForKeyPaths_options_block_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)NS_observationForKeyPaths_options_block_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-RBSIsXPCObject"><strong>RBSIsXPCObject</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)RBSIsXPCObject;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-SCNUI_name"><strong>SCNUI_name</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)SCNUI_name;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-VNComputeDevicePerformanceScore"><strong>VNComputeDevicePerformanceScore</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)VNComputeDevicePerformanceScore;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-VNComputeDeviceType"><strong>VNComputeDeviceType</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)VNComputeDeviceType;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-__pyobjc_PythonObject__"><strong>__pyobjc_PythonObject__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(PyObject*)__pyobjc_PythonObject__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-__pyobjc_PythonTransient___"><strong>__pyobjc_PythonTransient___</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(PyObject*)__pyobjc_PythonTransient___:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-abCaseInsensitiveIsEqual_"><strong>abCaseInsensitiveIsEqual_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)abCaseInsensitiveIsEqual_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-abDictionaryWithValuesForKeyPaths_"><strong>abDictionaryWithValuesForKeyPaths_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)abDictionaryWithValuesForKeyPaths_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-abRemoveObserverIgnoringExceptions_forKeyPath_"><strong>abRemoveObserverIgnoringExceptions_forKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)abRemoveObserverIgnoringExceptions_forKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityAddTemporaryChild_"><strong>accessibilityAddTemporaryChild_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)accessibilityAddTemporaryChild_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityAllowsOverriddenAttributesWhenIgnored"><strong>accessibilityAllowsOverriddenAttributesWhenIgnored</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilityAllowsOverriddenAttributesWhenIgnored;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityArrayAttributeCount_"><strong>accessibilityArrayAttributeCount_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)accessibilityArrayAttributeCount_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityArrayAttributeValues_index_maxCount_"><strong>accessibilityArrayAttributeValues_index_maxCount_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityArrayAttributeValues_index_maxCount_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityAttributeValue_forParameter_"><strong>accessibilityAttributeValue_forParameter_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityAttributeValue_forParameter_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityAttributedValueForStringAttributeAttributeForParameter_"><strong>accessibilityAttributedValueForStringAttributeAttributeForParameter_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityAttributedValueForStringAttributeAttributeForParameter_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityBrailleMapRenderRegion"><strong>accessibilityBrailleMapRenderRegion</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGRect)accessibilityBrailleMapRenderRegion;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityBrailleMapRenderer"><strong>accessibilityBrailleMapRenderer</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(&lt;BLOCK&gt;)accessibilityBrailleMapRenderer;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityDecodeOverriddenAttributes_"><strong>accessibilityDecodeOverriddenAttributes_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)accessibilityDecodeOverriddenAttributes_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityEncodeOverriddenAttributes_"><strong>accessibilityEncodeOverriddenAttributes_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)accessibilityEncodeOverriddenAttributes_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityIndexForChildUIElementAttributeForParameter_"><strong>accessibilityIndexForChildUIElementAttributeForParameter_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityIndexForChildUIElementAttributeForParameter_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityIndexForChildUIElementInNavigationOrderAttributeForParameter_"><strong>accessibilityIndexForChildUIElementInNavigationOrderAttributeForParameter_</strong></a>(
+    arg0,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityIndexForChildUIElementInNavigationOrderAttributeForParameter_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityIndexOfChild_"><strong>accessibilityIndexOfChild_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)accessibilityIndexOfChild_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityLockSourceForAttribute_"><strong>accessibilityLockSourceForAttribute_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)accessibilityLockSourceForAttribute_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityNodeForPlatformElement"><strong>accessibilityNodeForPlatformElement</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityNodeForPlatformElement;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityOverriddenAttributes"><strong>accessibilityOverriddenAttributes</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityOverriddenAttributes;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityParameterizedAttributeNames"><strong>accessibilityParameterizedAttributeNames</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityParameterizedAttributeNames;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityPerformShowMenuOfChild_"><strong>accessibilityPerformShowMenuOfChild_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilityPerformShowMenuOfChild_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityPresenterProcessIdentifier"><strong>accessibilityPresenterProcessIdentifier</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(int)accessibilityPresenterProcessIdentifier;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityRemoveTemporaryChild_"><strong>accessibilityRemoveTemporaryChild_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)accessibilityRemoveTemporaryChild_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityReplaceRange_withText_"><strong>accessibilityReplaceRange_withText_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilityReplaceRange_withText_:(Foundation.NSRange)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilitySetOverrideValue_forAttribute_"><strong>accessibilitySetOverrideValue_forAttribute_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)accessibilitySetOverrideValue_forAttribute_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilitySetPresenterProcessIdentifier_"><strong>accessibilitySetPresenterProcessIdentifier_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)accessibilitySetPresenterProcessIdentifier_:(int)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityShouldSendNotification_"><strong>accessibilityShouldSendNotification_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilityShouldSendNotification_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityShouldUseUniqueId"><strong>accessibilityShouldUseUniqueId</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilityShouldUseUniqueId;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilitySupportsCustomElementData"><strong>accessibilitySupportsCustomElementData</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilitySupportsCustomElementData;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilitySupportsNotifications"><strong>accessibilitySupportsNotifications</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilitySupportsNotifications;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilitySupportsOverriddenAttributes"><strong>accessibilitySupportsOverriddenAttributes</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)accessibilitySupportsOverriddenAttributes;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityTemporaryChildren"><strong>accessibilityTemporaryChildren</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)accessibilityTemporaryChildren;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-accessibilityVisibleArea"><strong>accessibilityVisibleArea</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)accessibilityVisibleArea;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addChainedObservers_"><strong>addChainedObservers_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)addChainedObservers_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObject_toBothSidesOfRelationshipWithKey_"><strong>addObject_toBothSidesOfRelationshipWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)addObject_toBothSidesOfRelationshipWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObject_toPropertyWithKey_"><strong>addObject_toPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)addObject_toPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObservationTransformer_"><strong>addObservationTransformer_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)addObservationTransformer_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObserverBlock_"><strong>addObserverBlock_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)addObserverBlock_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObserver_"><strong>addObserver_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)addObserver_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObserver_forKeyPath_options_context_"><strong>addObserver_forKeyPath_options_context_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)addObserver_forKeyPath_options_context_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-addObserver_forObservableKeyPath_"><strong>addObserver_forObservableKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)addObserver_forObservableKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-akToolbarButtonItemType"><strong>akToolbarButtonItemType</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)akToolbarButtonItemType;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-allPropertyKeys"><strong>allPropertyKeys</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)allPropertyKeys;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-allowsWeakReference"><strong>allowsWeakReference</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)allowsWeakReference;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-associatedObject"><strong>associatedObject</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)associatedObject;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-attributeKeys"><strong>attributeKeys</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)attributeKeys;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-autoContentAccessingProxy"><strong>autoContentAccessingProxy</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)autoContentAccessingProxy;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-autorelease"><strong>autorelease</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)autorelease;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-awakeAfterUsingCoder_"><strong>awakeAfterUsingCoder_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)awakeAfterUsingCoder_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-awakeFromNib"><strong>awakeFromNib</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)awakeFromNib;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-axSuperTrampoline"><strong>axSuperTrampoline</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)axSuperTrampoline;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-axTrampolineForClass_"><strong>axTrampolineForClass_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)axTrampolineForClass_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ax_prettyDescription"><strong>ax_prettyDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)ax_prettyDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-bind_toObject_withKeyPath_options_"><strong>bind_toObject_withKeyPath_options_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)bind_toObject_withKeyPath_options_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-boolValueSafe"><strong>boolValueSafe</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)boolValueSafe;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-boolValueSafe_"><strong>boolValueSafe_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)boolValueSafe_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-bs_isPlist"><strong>bs_isPlist</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)bs_isPlist;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-bs_isPlistableType"><strong>bs_isPlistableType</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)bs_isPlistableType;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-bs_secureEncoded"><strong>bs_secureEncoded</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)bs_secureEncoded;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-canRenderWithCGLContext_"><strong>canRenderWithCGLContext_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)canRenderWithCGLContext_:(CGLContextObject*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ckShortDescription"><strong>ckShortDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)ckShortDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classCode"><strong>classCode</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;int)classCode;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classDescription"><strong>classDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)classDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classDescriptionForDestinationKey_"><strong>classDescriptionForDestinationKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)classDescriptionForDestinationKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classForArchiver"><strong>classForArchiver</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)classForArchiver;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classForCoder"><strong>classForCoder</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)classForCoder;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classForKeyedArchiver"><strong>classForKeyedArchiver</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)classForKeyedArchiver;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-classForPortCoder"><strong>classForPortCoder</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)classForPortCoder;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-className"><strong>className</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)className;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-class__"><strong>class__</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)class__;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-clearProperties"><strong>clearProperties</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)clearProperties;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-coerceValueForScriptingProperties_"><strong>coerceValueForScriptingProperties_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)coerceValueForScriptingProperties_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-coerceValue_forKey_"><strong>coerceValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)coerceValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionParameterView_didChangeParameterWithKey_"><strong>compositionParameterView_didChangeParameterWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionParameterView_didChangeParameterWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionParameterView_shouldDisplayParameterWithKey_attributes_"><strong>compositionParameterView_shouldDisplayParameterWithKey_attributes_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)compositionParameterView_shouldDisplayParameterWithKey_attributes_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerViewDidStartAnimating_"><strong>compositionPickerViewDidStartAnimating_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionPickerViewDidStartAnimating_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerViewWillStopAnimating_"><strong>compositionPickerViewWillStopAnimating_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionPickerViewWillStopAnimating_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_didLoadComposition_"><strong>compositionPickerView_didLoadComposition_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionPickerView_didLoadComposition_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_didSelectComposition_"><strong>compositionPickerView_didSelectComposition_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionPickerView_didSelectComposition_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_draggingEnteredComposition_sender_"><strong>compositionPickerView_draggingEnteredComposition_sender_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)compositionPickerView_draggingEnteredComposition_sender_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_keyDown_"><strong>compositionPickerView_keyDown_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)compositionPickerView_keyDown_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_performDragOperationOnComposition_sender_"><strong>compositionPickerView_performDragOperationOnComposition_sender_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)compositionPickerView_performDragOperationOnComposition_sender_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-compositionPickerView_willSelectComposition_"><strong>compositionPickerView_willSelectComposition_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)compositionPickerView_willSelectComposition_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-conformsToProtocol_"><strong>conformsToProtocol_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)conformsToProtocol_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copy"><strong>copy</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)copy;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copyRenderedTextureForCGLContext_pixelFormat_bounds_isFlipped_"><strong>copyRenderedTextureForCGLContext_pixelFormat_bounds_isFlipped_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;int)copyRenderedTextureForCGLContext_pixelFormat_bounds_isFlipped_:(CGLContextObject*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copyScriptingValue_forKey_withProperties_"><strong>copyScriptingValue_forKey_withProperties_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)copyScriptingValue_forKey_withProperties_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copyValueForKeyPathOnMainThread_"><strong>copyValueForKeyPathOnMainThread_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)copyValueForKeyPathOnMainThread_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copyValueForKeyPath_forThreadKey_"><strong>copyValueForKeyPath_forThreadKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)copyValueForKeyPath_forThreadKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-copyValueForKeyPath_forThreadKey_waitTime_"><strong>copyValueForKeyPath_forThreadKey_waitTime_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)copyValueForKeyPath_forThreadKey_waitTime_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-createImageWithOptions_"><strong>createImageWithOptions_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)createImageWithOptions_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-createKeyValueBindingForKey_typeMask_"><strong>createKeyValueBindingForKey_typeMask_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)createKeyValueBindingForKey_typeMask_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-createOptimizedProviderWithTransformation_cropping_"><strong>createOptimizedProviderWithTransformation_cropping_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)createOptimizedProviderWithTransformation_cropping_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-dealloc"><strong>dealloc</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)dealloc;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-dealloc"><strong>dealloc</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)dealloc;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-debugDescription"><strong>debugDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)debugDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-description"><strong>description</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)description;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-description"><strong>description</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)description;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-descriptionAtIndent_"><strong>descriptionAtIndent_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)descriptionAtIndent_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-dictionaryWithValuesForKeys_"><strong>dictionaryWithValuesForKeys_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)dictionaryWithValuesForKeys_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-didChangeValueForKey_"><strong>didChangeValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)didChangeValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-didChangeValueForKey_withSetMutation_usingObjects_"><strong>didChangeValueForKey_withSetMutation_usingObjects_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)didChangeValueForKey_withSetMutation_usingObjects_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-didChange_valuesAtIndexes_forKey_"><strong>didChange_valuesAtIndexes_forKey_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)didChange_valuesAtIndexes_forKey_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-doesContain_"><strong>doesContain_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)doesContain_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-doesNotRecognizeSelector_"><strong>doesNotRecognizeSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)doesNotRecognizeSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-doesNotRecognizeSelector_"><strong>doesNotRecognizeSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)doesNotRecognizeSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-doubleValueSafe"><strong>doubleValueSafe</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)doubleValueSafe;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-doubleValueSafe_"><strong>doubleValueSafe_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)doubleValueSafe_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-encodeWithCAMLWriter_"><strong>encodeWithCAMLWriter_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)encodeWithCAMLWriter_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-entityName"><strong>entityName</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)entityName;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-exposedBindings"><strong>exposedBindings</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)exposedBindings;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-finalize"><strong>finalize</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)finalize;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-finishObserving"><strong>finishObserving</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)finishObserving;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-flushKeyBindings"><strong>flushKeyBindings</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)flushKeyBindings;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-forwardInvocation_"><strong>forwardInvocation_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)forwardInvocation_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-forwardInvocation_"><strong>forwardInvocation_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)forwardInvocation_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-forwardingTargetForSelector_"><strong>forwardingTargetForSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)forwardingTargetForSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-fp__ivarDescriptionForClass_"><strong>fp__ivarDescriptionForClass_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)fp__ivarDescriptionForClass_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-fp__methodDescriptionForClass_"><strong>fp__methodDescriptionForClass_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)fp__methodDescriptionForClass_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-fp_ivarDescription"><strong>fp_ivarDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)fp_ivarDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-fp_methodDescription"><strong>fp_methodDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)fp_methodDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-fp_shortMethodDescription"><strong>fp_shortMethodDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)fp_shortMethodDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-handleFailoversForClassNamed_"><strong>handleFailoversForClassNamed_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)handleFailoversForClassNamed_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-handleQueryWithUnboundKey_"><strong>handleQueryWithUnboundKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)handleQueryWithUnboundKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-handleTakeValue_forUnboundKey_"><strong>handleTakeValue_forUnboundKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)handleTakeValue_forUnboundKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-hash"><strong>hash</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)hash;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ikInMainLoopWait_"><strong>ikInMainLoopWait_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)ikInMainLoopWait_:(bool)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-imageBrowser_didValidateVisibleCellsAtIndexes_"><strong>imageBrowser_didValidateVisibleCellsAtIndexes_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)imageBrowser_didValidateVisibleCellsAtIndexes_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-imageBrowser_willDisplayCellsAtIndexes_"><strong>imageBrowser_willDisplayCellsAtIndexes_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)imageBrowser_willDisplayCellsAtIndexes_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-imageSubtitle"><strong>imageSubtitle</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)imageSubtitle;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-imageTitle"><strong>imageTitle</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)imageTitle;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-imageToDrawForCell_"><strong>imageToDrawForCell_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)imageToDrawForCell_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-implementsSelector_"><strong>implementsSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)implementsSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-indentedDescription"><strong>indentedDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)indentedDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-infoForBinding_"><strong>infoForBinding_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)infoForBinding_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-insertValue_atIndex_inPropertyWithKey_"><strong>insertValue_atIndex_inPropertyWithKey_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)insertValue_atIndex_inPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-insertValue_inPropertyWithKey_"><strong>insertValue_inPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)insertValue_inPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-int64ValueSafe"><strong>int64ValueSafe</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)int64ValueSafe;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-int64ValueSafe_"><strong>int64ValueSafe_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)int64ValueSafe_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-inverseForRelationshipKey_"><strong>inverseForRelationshipKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)inverseForRelationshipKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isCaseInsensitiveLike_"><strong>isCaseInsensitiveLike_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isCaseInsensitiveLike_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isEqualTo_"><strong>isEqualTo_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isEqualTo_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isEqual_"><strong>isEqual_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isEqual_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isFault"><strong>isFault</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)isFault;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isGreaterThanOrEqualTo_"><strong>isGreaterThanOrEqualTo_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isGreaterThanOrEqualTo_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isGreaterThan_"><strong>isGreaterThan_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isGreaterThan_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isKindOfClass_"><strong>isKindOfClass_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isKindOfClass_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isLessThanOrEqualTo_"><strong>isLessThanOrEqualTo_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isLessThanOrEqualTo_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isLessThan_"><strong>isLessThan_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isLessThan_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isLike_"><strong>isLike_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isLike_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isMemberOfClass_"><strong>isMemberOfClass_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isMemberOfClass_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNotEqualTo_"><strong>isNotEqualTo_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isNotEqualTo_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNull"><strong>isNull</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)isNull;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNull"><strong>isNull</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)isNull;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isNull"><strong>isNull</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)isNull;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isProxy"><strong>isProxy</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)isProxy;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-isToManyKey_"><strong>isToManyKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)isToManyKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-keyValueBindingForKey_typeMask_"><strong>keyValueBindingForKey_typeMask_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)keyValueBindingForKey_typeMask_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-knownRepresentedElement"><strong>knownRepresentedElement</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)knownRepresentedElement;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-methodDescriptionForSelector_"><strong>methodDescriptionForSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(objc_method_description*)methodDescriptionForSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-methodForSelector_"><strong>methodForSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(&lt;FUNCTION&gt;)methodForSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-methodSignatureForSelector_"><strong>methodSignatureForSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)methodSignatureForSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-methodSignatureForSelector_"><strong>methodSignatureForSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)methodSignatureForSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mr_formattedDebugDescription"><strong>mr_formattedDebugDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mr_formattedDebugDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableArrayValueForKeyPath_"><strong>mutableArrayValueForKeyPath_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableArrayValueForKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableArrayValueForKey_"><strong>mutableArrayValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableArrayValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableCopy"><strong>mutableCopy</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableCopy;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableOrderedSetValueForKeyPath_"><strong>mutableOrderedSetValueForKeyPath_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableOrderedSetValueForKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableOrderedSetValueForKey_"><strong>mutableOrderedSetValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableOrderedSetValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableSetValueForKeyPath_"><strong>mutableSetValueForKeyPath_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableSetValueForKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-mutableSetValueForKey_"><strong>mutableSetValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)mutableSetValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-newScriptingObjectOfClass_forValueForKey_withContentsValue_properties_"><strong>newScriptingObjectOfClass_forValueForKey_withContentsValue_properties_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)newScriptingObjectOfClass_forValueForKey_withContentsValue_properties_:(Class)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-objectSpecifier"><strong>objectSpecifier</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)objectSpecifier;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-observationInfo"><strong>observationInfo</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void*)observationInfo;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-observeValueForKeyPath_ofObject_change_context_"><strong>observeValueForKeyPath_ofObject_change_context_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)observeValueForKeyPath_ofObject_change_context_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-optionDescriptionsForBinding_"><strong>optionDescriptionsForBinding_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)optionDescriptionsForBinding_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-ownsDestinationObjectsForRelationshipKey_"><strong>ownsDestinationObjectsForRelationshipKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)ownsDestinationObjectsForRelationshipKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onMainThread"><strong>pep_onMainThread</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)pep_onMainThread;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pep_onMainThreadIfNecessary"><strong>pep_onMainThreadIfNecessary</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)pep_onMainThreadIfNecessary;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performAsyncBlock_forThreadKey_"><strong>performAsyncBlock_forThreadKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performAsyncBlock_forThreadKey_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performBlockOnMainThreadSynchronously_"><strong>performBlockOnMainThreadSynchronously_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performBlockOnMainThreadSynchronously_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelectorInBackground_withObject_"><strong>performSelectorInBackground_withObject_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelectorInBackground_withObject_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelectorOnMainThread_withObject_waitUntilDone_"><strong>performSelectorOnMainThread_withObject_waitUntilDone_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelectorOnMainThread_withObject_waitUntilDone_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelectorOnMainThread_withObject_waitUntilDone_modes_"><strong>performSelectorOnMainThread_withObject_waitUntilDone_modes_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelectorOnMainThread_withObject_waitUntilDone_modes_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_"><strong>performSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)performSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_object_afterDelay_"><strong>performSelector_object_afterDelay_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_object_afterDelay_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_onThread_withObject_waitUntilDone_"><strong>performSelector_onThread_withObject_waitUntilDone_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_onThread_withObject_waitUntilDone_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_onThread_withObject_waitUntilDone_modes_"><strong>performSelector_onThread_withObject_waitUntilDone_modes_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_onThread_withObject_waitUntilDone_modes_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObject_"><strong>performSelector_withObject_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)performSelector_withObject_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObject_afterDelay_"><strong>performSelector_withObject_afterDelay_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_withObject_afterDelay_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObject_afterDelay_ignoreMenuTracking_"><strong>performSelector_withObject_afterDelay_ignoreMenuTracking_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_withObject_afterDelay_ignoreMenuTracking_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObject_afterDelay_inModes_"><strong>performSelector_withObject_afterDelay_inModes_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)performSelector_withObject_afterDelay_inModes_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObject_withObject_"><strong>performSelector_withObject_withObject_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)performSelector_withObject_withObject_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withObjectsAsArray_"><strong>performSelector_withObjectsAsArray_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)performSelector_withObjectsAsArray_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withThreadKey_count_objects_"><strong>performSelector_withThreadKey_count_objects_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)performSelector_withThreadKey_count_objects_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-performSelector_withThreadKey_waitTime_cancelMask_count_objects_"><strong>performSelector_withThreadKey_waitTime_cancelMask_count_objects_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    arg5,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)performSelector_withThreadKey_waitTime_cancelMask_count_objects_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pkaxRespondsToSelector_fromExtrasProtocol_"><strong>pkaxRespondsToSelector_fromExtrasProtocol_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)pkaxRespondsToSelector_fromExtrasProtocol_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-pkaxValueForKey_"><strong>pkaxValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)pkaxValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-prepareForInterfaceBuilder"><strong>prepareForInterfaceBuilder</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)prepareForInterfaceBuilder;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-receiveObservedError_"><strong>receiveObservedError_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)receiveObservedError_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-receiveObservedValue_"><strong>receiveObservedValue_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)receiveObservedValue_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-release"><strong>release</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(oneway&nbsp;void)release;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-releaseRenderedTexture_forCGLContext_"><strong>releaseRenderedTexture_forCGLContext_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)releaseRenderedTexture_forCGLContext_:(unsigned&nbsp;int)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObject_fromBothSidesOfRelationshipWithKey_"><strong>removeObject_fromBothSidesOfRelationshipWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObject_fromBothSidesOfRelationshipWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObject_fromPropertyWithKey_"><strong>removeObject_fromPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObject_fromPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObservation_"><strong>removeObservation_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObservation_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObservation_forObservableKeyPath_"><strong>removeObservation_forObservableKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObservation_forObservableKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObserver_forKeyPath_"><strong>removeObserver_forKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObserver_forKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeObserver_forKeyPath_context_"><strong>removeObserver_forKeyPath_context_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeObserver_forKeyPath_context_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-removeValueAtIndex_fromPropertyWithKey_"><strong>removeValueAtIndex_fromPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)removeValueAtIndex_fromPropertyWithKey_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-renderToBuffer_withBytesPerRow_pixelFormat_forBounds_"><strong>renderToBuffer_withBytesPerRow_pixelFormat_forBounds_</strong></a>(arg0, arg1, arg2, arg3, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)renderToBuffer_withBytesPerRow_pixelFormat_forBounds_:(void*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-renderWithCGLContext_forBounds_"><strong>renderWithCGLContext_forBounds_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)renderWithCGLContext_forBounds_:(CGLContextObject*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-replaceValueAtIndex_inPropertyWithKey_withValue_"><strong>replaceValueAtIndex_inPropertyWithKey_withValue_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)replaceValueAtIndex_inPropertyWithKey_withValue_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-replacementObjectForArchiver_"><strong>replacementObjectForArchiver_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)replacementObjectForArchiver_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-replacementObjectForCoder_"><strong>replacementObjectForCoder_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)replacementObjectForCoder_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-replacementObjectForKeyedArchiver_"><strong>replacementObjectForKeyedArchiver_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)replacementObjectForKeyedArchiver_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-replacementObjectForPortCoder_"><strong>replacementObjectForPortCoder_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)replacementObjectForPortCoder_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-resolveForwardingConflictWithPreviousMetadata_forKey_"><strong>resolveForwardingConflictWithPreviousMetadata_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)resolveForwardingConflictWithPreviousMetadata_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-respondsToSelector_"><strong>respondsToSelector_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)respondsToSelector_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-retain"><strong>retain</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)retain;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-retainCount"><strong>retainCount</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)retainCount;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-retainWeakReference"><strong>retainWeakReference</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)retainWeakReference;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-rotorOwnerElement"><strong>rotorOwnerElement</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)rotorOwnerElement;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeArrayForKey_"><strong>safeArrayForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeArrayForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeBoolForKey_"><strong>safeBoolForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)safeBoolForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeCGFloatForKey_"><strong>safeCGFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)safeCGFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeCGPointForKey_"><strong>safeCGPointForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGPoint)safeCGPointForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeCGRectForKey_"><strong>safeCGRectForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGRect)safeCGRectForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeCGSizeForKey_"><strong>safeCGSizeForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGSize)safeCGSizeForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeDictionaryForKey_"><strong>safeDictionaryForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeDictionaryForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeDoubleForKey_"><strong>safeDoubleForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)safeDoubleForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeFloatForKey_"><strong>safeFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(float)safeFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeIntForKey_"><strong>safeIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(int)safeIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeIntegerForIvarKey_onClass_"><strong>safeIntegerForIvarKey_onClass_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)safeIntegerForIvarKey_onClass_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeIntegerForKey_"><strong>safeIntegerForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)safeIntegerForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeIvarForKey_"><strong>safeIvarForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void*)safeIvarForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeRangeForKey_"><strong>safeRangeForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Foundation.NSRange)safeRangeForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSetForKey_"><strong>safeSetForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSetForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeStringForKey_"><strong>safeStringForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeStringForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftArrayForKey_"><strong>safeSwiftArrayForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftArrayForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftBoolForKey_"><strong>safeSwiftBoolForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)safeSwiftBoolForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftCGFloatForKey_"><strong>safeSwiftCGFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)safeSwiftCGFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftCGPointForKey_"><strong>safeSwiftCGPointForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGPoint)safeSwiftCGPointForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftCGRectForKey_"><strong>safeSwiftCGRectForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGRect)safeSwiftCGRectForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftCGSizeForKey_"><strong>safeSwiftCGSizeForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(CoreFoundation.CGSize)safeSwiftCGSizeForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftCallAsFunction_"><strong>safeSwiftCallAsFunction_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)safeSwiftCallAsFunction_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftDictionaryForKey_"><strong>safeSwiftDictionaryForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftDictionaryForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftDoubleForKey_"><strong>safeSwiftDoubleForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)safeSwiftDoubleForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftEnumAssociatedObject"><strong>safeSwiftEnumAssociatedObject</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftEnumAssociatedObject;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftEnumCase"><strong>safeSwiftEnumCase</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftEnumCase;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftFloatForKey_"><strong>safeSwiftFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(float)safeSwiftFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftInt16ForKey_"><strong>safeSwiftInt16ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(short)safeSwiftInt16ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftInt32ForKey_"><strong>safeSwiftInt32ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(int)safeSwiftInt32ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftInt64ForKey_"><strong>safeSwiftInt64ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)safeSwiftInt64ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftInt8ForKey_"><strong>safeSwiftInt8ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(char)safeSwiftInt8ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftIntForKey_"><strong>safeSwiftIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(long&nbsp;long)safeSwiftIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalBoolForKey_"><strong>safeSwiftOptionalBoolForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalBoolForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalCGFloatForKey_"><strong>safeSwiftOptionalCGFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalCGFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalCGPointForKey_"><strong>safeSwiftOptionalCGPointForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalCGPointForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalCGRectForKey_"><strong>safeSwiftOptionalCGRectForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalCGRectForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalCGSizeForKey_"><strong>safeSwiftOptionalCGSizeForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalCGSizeForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalDoubleForKey_"><strong>safeSwiftOptionalDoubleForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalDoubleForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalFloatForKey_"><strong>safeSwiftOptionalFloatForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalFloatForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalInt16ForKey_"><strong>safeSwiftOptionalInt16ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalInt16ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalInt32ForKey_"><strong>safeSwiftOptionalInt32ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalInt32ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalInt64ForKey_"><strong>safeSwiftOptionalInt64ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalInt64ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalInt8ForKey_"><strong>safeSwiftOptionalInt8ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalInt8ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalIntForKey_"><strong>safeSwiftOptionalIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalUInt16ForKey_"><strong>safeSwiftOptionalUInt16ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalUInt16ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalUInt32ForKey_"><strong>safeSwiftOptionalUInt32ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalUInt32ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalUInt64ForKey_"><strong>safeSwiftOptionalUInt64ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalUInt64ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalUInt8ForKey_"><strong>safeSwiftOptionalUInt8ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalUInt8ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftOptionalUIntForKey_"><strong>safeSwiftOptionalUIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftOptionalUIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftSetForKey_"><strong>safeSwiftSetForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftSetForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftStringForKey_"><strong>safeSwiftStringForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftStringForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftUInt16ForKey_"><strong>safeSwiftUInt16ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;short)safeSwiftUInt16ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftUInt32ForKey_"><strong>safeSwiftUInt32ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;int)safeSwiftUInt32ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftUInt64ForKey_"><strong>safeSwiftUInt64ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)safeSwiftUInt64ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftUInt8ForKey_"><strong>safeSwiftUInt8ForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;char)safeSwiftUInt8ForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftUIntForKey_"><strong>safeSwiftUIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)safeSwiftUIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeSwiftValueForKey_"><strong>safeSwiftValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeSwiftValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeTimeIntervalForKey_"><strong>safeTimeIntervalForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(double)safeTimeIntervalForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeUIViewForKey_"><strong>safeUIViewForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeUIViewForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeUnsignedIntForKey_"><strong>safeUnsignedIntForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;int)safeUnsignedIntForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeUnsignedIntegerForKey_"><strong>safeUnsignedIntegerForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(unsigned&nbsp;long&nbsp;long)safeUnsignedIntegerForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeValueForKeyPath_"><strong>safeValueForKeyPath_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeValueForKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-safeValueForKey_"><strong>safeValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)safeValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-scriptingProperties"><strong>scriptingProperties</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)scriptingProperties;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-scriptingValueForSpecifier_"><strong>scriptingValueForSpecifier_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)scriptingValueForSpecifier_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-self"><strong>self</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)self;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setAccessibilityBrailleMapRenderRegion_"><strong>setAccessibilityBrailleMapRenderRegion_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setAccessibilityBrailleMapRenderRegion_:(CoreFoundation.CGRect)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setAccessibilityBrailleMapRenderer_"><strong>setAccessibilityBrailleMapRenderer_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setAccessibilityBrailleMapRenderer_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setAccessibilityLockSource_forAttribute_"><strong>setAccessibilityLockSource_forAttribute_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setAccessibilityLockSource_forAttribute_:(long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setAccessibilityNodeForPlatformElement_"><strong>setAccessibilityNodeForPlatformElement_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setAccessibilityNodeForPlatformElement_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setAssociatedObject_"><strong>setAssociatedObject_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setAssociatedObject_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setNilValueForKey_"><strong>setNilValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setNilValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setObservationInfo_"><strong>setObservationInfo_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setObservationInfo_:(void*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setObservation_forObservingKeyPath_"><strong>setObservation_forObservingKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setObservation_forObservingKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setScriptingProperties_"><strong>setScriptingProperties_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setScriptingProperties_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setSharedObservers_"><strong>setSharedObservers_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setSharedObservers_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setUserInterfaceItemIdentifier_"><strong>setUserInterfaceItemIdentifier_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setUserInterfaceItemIdentifier_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setValue_forKeyPath_"><strong>setValue_forKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setValue_forKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setValue_forKey_"><strong>setValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setValue_forKey_"><strong>setValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setValue_forUndefinedKey_"><strong>setValue_forUndefinedKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setValue_forUndefinedKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-setValuesForKeysWithDictionary_"><strong>setValuesForKeysWithDictionary_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)setValuesForKeysWithDictionary_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-settingsView_clearSettingForKey_"><strong>settingsView_clearSettingForKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)settingsView_clearSettingForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-settingsView_renameKey_toKey_"><strong>settingsView_renameKey_toKey_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)settingsView_renameKey_toKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-settingsView_setSetting_forKey_"><strong>settingsView_setSetting_forKey_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)settingsView_setSetting_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-settingsView_settingForKey_"><strong>settingsView_settingForKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)settingsView_settingForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-settingsView_shouldRenameKey_"><strong>settingsView_shouldRenameKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)settingsView_shouldRenameKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-shouldColorMatch"><strong>shouldColorMatch</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)shouldColorMatch;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-storedValueForKey_"><strong>storedValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)storedValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-storedValueForKey_"><strong>storedValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)storedValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-stringValueSafe"><strong>stringValueSafe</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)stringValueSafe;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-stringValueSafe_"><strong>stringValueSafe_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)stringValueSafe_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-superclass"><strong>superclass</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)superclass;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-supportedBufferPixelFormats"><strong>supportedBufferPixelFormats</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)supportedBufferPixelFormats;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-supportedRenderedTexturePixelFormats"><strong>supportedRenderedTexturePixelFormats</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)supportedRenderedTexturePixelFormats;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-supportsBSXPCSecureCoding"><strong>supportsBSXPCSecureCoding</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)supportsBSXPCSecureCoding;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-supportsRBSXPCSecureCoding"><strong>supportsRBSXPCSecureCoding</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)supportsRBSXPCSecureCoding;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-swiftUI_accessibilityStoredLabel"><strong>swiftUI_accessibilityStoredLabel</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)swiftUI_accessibilityStoredLabel;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-swiftUI_accessibilityStoredLinkRotor"><strong>swiftUI_accessibilityStoredLinkRotor</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)swiftUI_accessibilityStoredLinkRotor;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-swiftui_accessibilityLabel"><strong>swiftui_accessibilityLabel</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)swiftui_accessibilityLabel;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeStoredValue_forKey_"><strong>takeStoredValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeStoredValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeStoredValue_forKey_"><strong>takeStoredValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeStoredValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeStoredValuesFromDictionary_"><strong>takeStoredValuesFromDictionary_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeStoredValuesFromDictionary_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeValue_forKeyPath_"><strong>takeValue_forKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeValue_forKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeValue_forKey_"><strong>takeValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeValue_forKey_"><strong>takeValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeValue_forKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-takeValuesFromDictionary_"><strong>takeValuesFromDictionary_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)takeValuesFromDictionary_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-threadDescription"><strong>threadDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)threadDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-toManyRelationshipKeys"><strong>toManyRelationshipKeys</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)toManyRelationshipKeys;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-toOneRelationshipKeys"><strong>toOneRelationshipKeys</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)toOneRelationshipKeys;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-toPBCodable"><strong>toPBCodable</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)toPBCodable;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-un_safeBoolValue"><strong>un_safeBoolValue</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(bool)un_safeBoolValue;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-unableToSetNilForKey_"><strong>unableToSetNilForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)unableToSetNilForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-unbind_"><strong>unbind_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)unbind_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-userInterfaceItemIdentifier"><strong>userInterfaceItemIdentifier</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)userInterfaceItemIdentifier;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-utf8ValueSafe"><strong>utf8ValueSafe</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(char*)utf8ValueSafe;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-utf8ValueSafe_"><strong>utf8ValueSafe_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(char*)utf8ValueSafe_:(int*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-validateTakeValue_forKeyPath_"><strong>validateTakeValue_forKeyPath_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)validateTakeValue_forKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-validateValue_forKeyPath_error_"><strong>validateValue_forKeyPath_error_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)validateValue_forKeyPath_error_:(inout&nbsp;id*)arg0;<br>
+&nbsp;<br>
+arg0:&nbsp;pass-by-reference&nbsp;inout&nbsp;argument</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-validateValue_forKey_"><strong>validateValue_forKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)validateValue_forKey_:(id*)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-validateValue_forKey_error_"><strong>validateValue_forKey_error_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(BOOL)validateValue_forKey_error_:(inout&nbsp;id*)arg0;<br>
+&nbsp;<br>
+arg0:&nbsp;pass-by-reference&nbsp;inout&nbsp;argument</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueAtIndex_inPropertyWithKey_"><strong>valueAtIndex_inPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueAtIndex_inPropertyWithKey_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueClassForBinding_"><strong>valueClassForBinding_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(Class)valueClassForBinding_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForBlock_forThreadKey_waitTime_"><strong>valueForBlock_forThreadKey_waitTime_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForBlock_forThreadKey_waitTime_:(&lt;BLOCK&gt;)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKeyPathOnMainThread_"><strong>valueForKeyPathOnMainThread_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKeyPathOnMainThread_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKeyPath_"><strong>valueForKeyPath_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKeyPath_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKeyPath_forThreadKey_"><strong>valueForKeyPath_forThreadKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKeyPath_forThreadKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKeyPath_forThreadKey_waitTime_"><strong>valueForKeyPath_forThreadKey_waitTime_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKeyPath_forThreadKey_waitTime_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKey_"><strong>valueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForKey_"><strong>valueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForSelector_forThreadKey_waitTime_copyValue_withObjects_"><strong>valueForSelector_forThreadKey_waitTime_copyValue_withObjects_</strong></a>(
+    arg0,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+    /
+)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForSelector_forThreadKey_waitTime_copyValue_withObjects_:(SEL)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueForUndefinedKey_"><strong>valueForUndefinedKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueForUndefinedKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueWithName_inPropertyWithKey_"><strong>valueWithName_inPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueWithName_inPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valueWithUniqueID_inPropertyWithKey_"><strong>valueWithUniqueID_inPropertyWithKey_</strong></a>(arg0, arg1, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valueWithUniqueID_inPropertyWithKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-valuesForKeys_"><strong>valuesForKeys_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)valuesForKeys_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-vk_loggingDescription"><strong>vk_loggingDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)vk_loggingDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-vk_loggingIdentifier"><strong>vk_loggingIdentifier</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)vk_loggingIdentifier;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-vk_prettyLoggingDescription"><strong>vk_prettyLoggingDescription</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(id)vk_prettyLoggingDescription;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-willChangeValueForKey_"><strong>willChangeValueForKey_</strong></a>(arg0, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)willChangeValueForKey_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-willChangeValueForKey_withSetMutation_usingObjects_"><strong>willChangeValueForKey_withSetMutation_usingObjects_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)willChangeValueForKey_withSetMutation_usingObjects_:(id)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-willChange_valuesAtIndexes_forKey_"><strong>willChange_valuesAtIndexes_forKey_</strong></a>(arg0, arg1, arg2, /)<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(void)willChange_valuesAtIndexes_forKey_:(unsigned&nbsp;long&nbsp;long)arg0;</span></dd></dl>
+
+<dl><dt><a name="OverlayTick-zone"><strong>zone</strong></a>()<span class="grey"><span class="heading-text"> from objc.NSObject</span></span></dt><dd><span class="code">+&nbsp;(NSZonePtr)zone;</span></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-CGColorCreateGenericRGB"><strong>CGColorCreateGenericRGB</strong></a>(arg0, arg1, arg2, arg3, /)</dt><dd><span class="code">CGColorRef&nbsp;<a href="#-CGColorCreateGenericRGB">CGColorCreateGenericRGB</a>(double&nbsp;arg0,&nbsp;double&nbsp;arg1,&nbsp;double&nbsp;arg2,&nbsp;double&nbsp;arg3);</span></dd></dl>
+ <dl><dt><a name="-CGDisplayBounds"><strong>CGDisplayBounds</strong></a>(arg0, /)</dt><dd><span class="code">CoreFoundation.CGRect&nbsp;<a href="#-CGDisplayBounds">CGDisplayBounds</a>(unsigned&nbsp;int&nbsp;arg0);</span></dd></dl>
+ <dl><dt><a name="-CGMainDisplayID"><strong>CGMainDisplayID</strong></a>()</dt><dd><span class="code">unsigned&nbsp;int&nbsp;<a href="#-CGMainDisplayID">CGMainDisplayID</a>(void);</span></dd></dl>
+ <dl><dt><a name="-create_label_window"><strong>create_label_window</strong></a>()</dt><dd><span class="code">Create&nbsp;a&nbsp;window&nbsp;for&nbsp;the&nbsp;folder&nbsp;label&nbsp;bar&nbsp;at&nbsp;the&nbsp;top&nbsp;of&nbsp;the&nbsp;overlay.</span></dd></dl>
+ <dl><dt><a name="-create_overlay_window"><strong>create_overlay_window</strong></a>()</dt><dd><span class="code">Create&nbsp;a&nbsp;single&nbsp;transparent&nbsp;window&nbsp;with&nbsp;a&nbsp;CALayer&nbsp;rounded&nbsp;border.</span></dd></dl>
+ <dl><dt><a name="-hide_label"><strong>hide_label</strong></a>(win)</dt><dd><span class="code">Hide&nbsp;the&nbsp;label&nbsp;window.</span></dd></dl>
+ <dl><dt><a name="-hide_overlay"><strong>hide_overlay</strong></a>(win)</dt><dd><span class="code">Hide&nbsp;the&nbsp;overlay&nbsp;window.</span></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>()</dt><dd><span class="code">Start&nbsp;the&nbsp;overlay&nbsp;app&nbsp;and&nbsp;poll&nbsp;the&nbsp;overlay&nbsp;IPC&nbsp;file&nbsp;until&nbsp;shutdown.</span></dd></dl>
+ <dl><dt><a name="-show_label"><strong>show_label</strong></a>(win, label_field, primary_h, qx, qy, qw)</dt><dd><span class="code">Position&nbsp;the&nbsp;label&nbsp;window&nbsp;at&nbsp;the&nbsp;top&nbsp;of&nbsp;the&nbsp;overlay&nbsp;rect.</span></dd></dl>
+ <dl><dt><a name="-show_overlay"><strong>show_overlay</strong></a>(win, primary_h, qx, qy, qw, qh)</dt><dd><span class="code">Position&nbsp;the&nbsp;overlay&nbsp;window&nbsp;over&nbsp;the&nbsp;given&nbsp;Quartz-coordinates&nbsp;rect.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>ALPHA</strong> = 0.85<br>
+<strong>AMBER</strong> = (255, 176, 0)<br>
+<strong>BORDER_WIDTH</strong> = 2<br>
+<strong>CHECK_INTERVAL</strong> = 0.1<br>
+<strong>CORNER_RADIUS</strong> = 10<br>
+<strong>LABEL_HEIGHT</strong> = 26<br>
+<strong>NSBackingStoreBuffered</strong> = 2<br>
+<strong>NSFloatingWindowLevel</strong> = 3<br>
+<strong>NSTextAlignmentCenter</strong> = 1<br>
+<strong>NSWindowStyleMaskBorderless</strong> = 0<br>
+<strong>OVERLAY_FILE</strong> = '/Users/chodges/src/ClawDeck/.deck-overlay.json'</td></tr></table>
+</body></html>

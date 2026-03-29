@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module clawdeck.input</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="clawdeck.html" class="white">clawdeck</a>.input</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/clawdeck/input.py">/Users/chodges/src/ClawDeck/clawdeck/input.py</a></td></tr></table>
+    <p><span class="code">Keyboard&nbsp;event&nbsp;helpers&nbsp;for&nbsp;MIC&nbsp;shortcuts&nbsp;and&nbsp;nav&nbsp;key&nbsp;dispatch.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="CoreFoundation.html">CoreFoundation</a><br>
+</td><td class="multicolumn"><a href="subprocess.html">subprocess</a><br>
+</td><td class="multicolumn"><a href="time.html">time</a><br>
+</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="clawdeck.input.html#InputController">InputController</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="InputController">class <strong>InputController</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code">Send&nbsp;and&nbsp;capture&nbsp;key&nbsp;events&nbsp;through&nbsp;Quartz&nbsp;and&nbsp;AppleScript&nbsp;bridges.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="InputController-learn_keystroke"><strong>learn_keystroke</strong></a>(self, config, config_store)</dt><dd><span class="code">Capture&nbsp;the&nbsp;next&nbsp;key&nbsp;combo&nbsp;and&nbsp;save&nbsp;it&nbsp;as&nbsp;the&nbsp;MIC&nbsp;binding.</span></dd></dl>
+
+<dl><dt><a name="InputController-send_key"><strong>send_key</strong></a>(self, key_name)</dt><dd><span class="code">Send&nbsp;a&nbsp;named&nbsp;key&nbsp;press&nbsp;to&nbsp;the&nbsp;frontmost&nbsp;app&nbsp;via&nbsp;System&nbsp;Events.</span></dd></dl>
+
+<dl><dt><a name="InputController-trigger_mic"><strong>trigger_mic</strong></a>(self, config)</dt><dd><span class="code">Trigger&nbsp;the&nbsp;configured&nbsp;MIC&nbsp;action.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-CGEventCreateKeyboardEvent"><strong>CGEventCreateKeyboardEvent</strong></a>(arg0, arg1, arg2, /)</dt><dd><span class="code">CGEventRef&nbsp;<a href="#-CGEventCreateKeyboardEvent">CGEventCreateKeyboardEvent</a>(CGEventSourceRef&nbsp;arg0,&nbsp;unsigned&nbsp;short&nbsp;arg1,&nbsp;bool&nbsp;arg2);</span></dd></dl>
+ <dl><dt><a name="-CGEventGetFlags"><strong>CGEventGetFlags</strong></a>(arg0, /)</dt><dd><span class="code">unsigned&nbsp;long&nbsp;long&nbsp;<a href="#-CGEventGetFlags">CGEventGetFlags</a>(CGEventRef&nbsp;arg0);</span></dd></dl>
+ <dl><dt><a name="-CGEventGetIntegerValueField"><strong>CGEventGetIntegerValueField</strong></a>(arg0, arg1, /)</dt><dd><span class="code">long&nbsp;long&nbsp;<a href="#-CGEventGetIntegerValueField">CGEventGetIntegerValueField</a>(CGEventRef&nbsp;arg0,&nbsp;unsigned&nbsp;int&nbsp;arg1);</span></dd></dl>
+ <dl><dt><a name="-CGEventPost"><strong>CGEventPost</strong></a>(arg0, arg1, /)</dt><dd><span class="code">void&nbsp;<a href="#-CGEventPost">CGEventPost</a>(unsigned&nbsp;int&nbsp;arg0,&nbsp;CGEventRef&nbsp;arg1);</span></dd></dl>
+ <dl><dt><a name="-CGEventSetFlags"><strong>CGEventSetFlags</strong></a>(arg0, arg1, /)</dt><dd><span class="code">void&nbsp;<a href="#-CGEventSetFlags">CGEventSetFlags</a>(CGEventRef&nbsp;arg0,&nbsp;unsigned&nbsp;long&nbsp;long&nbsp;arg1);</span></dd></dl>
+ <dl><dt><a name="-CGEventTapCreate"><strong>CGEventTapCreate</strong></a>(...)</dt></dl>
+ <dl><dt><a name="-format_keystroke"><strong>format_keystroke</strong></a>(key_code, flags)</dt><dd><span class="code">Build&nbsp;a&nbsp;human-readable&nbsp;label&nbsp;like&nbsp;'⌘⇧A'&nbsp;from&nbsp;key&nbsp;code&nbsp;+&nbsp;modifier&nbsp;flags.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>ARROW_KEY_CODES</strong> = {'Down': 125, 'Left': 123, 'Right': 124, 'Up': 126}<br>
+<strong>FN_KEY_CODE</strong> = 63<br>
+<strong>KEY_NAMES</strong> = {0: 'A', 1: 'S', 2: 'D', 3: 'F', 4: 'H', 5: 'G', 6: 'Z', 7: 'X', 8: 'C', 9: 'V', ...}<br>
+<strong>MOD_COMMAND</strong> = 1048576<br>
+<strong>MOD_CONTROL</strong> = 262144<br>
+<strong>MOD_FN</strong> = 8388608<br>
+<strong>MOD_OPTION</strong> = 524288<br>
+<strong>MOD_SHIFT</strong> = 131072<br>
+<strong>kCGEventFlagsChanged</strong> = 12<br>
+<strong>kCGEventKeyDown</strong> = 10<br>
+<strong>kCGHIDEventTap</strong> = 0<br>
+<strong>kCGHeadInsertEventTap</strong> = 0<br>
+<strong>kCGKeyboardEventKeycode</strong> = 9<br>
+<strong>kCGSessionEventTap</strong> = 1<br>
+<strong>logger</strong> = &lt;Logger clawdeck (DEBUG)&gt;</td></tr></table>
+</body></html>

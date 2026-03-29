@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module clawdeck.devtools</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="clawdeck.html" class="white">clawdeck</a>.devtools</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/clawdeck/devtools.py">/Users/chodges/src/ClawDeck/clawdeck/devtools.py</a></td></tr></table>
+    <p><span class="code">Developer&nbsp;utilities&nbsp;for&nbsp;inspecting&nbsp;host&nbsp;state&nbsp;and&nbsp;painting&nbsp;deck&nbsp;keys.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="argparse.html">argparse</a><br>
+</td><td class="multicolumn"><a href="sys.html">sys</a><br>
+</td><td class="multicolumn"><a href="time.html">time</a><br>
+</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-build_parser"><strong>build_parser</strong></a>()</dt><dd><span class="code">Build&nbsp;the&nbsp;CLI&nbsp;parser&nbsp;for&nbsp;`python&nbsp;-m&nbsp;clawdeck.devtools`.</span></dd></dl>
+ <dl><dt><a name="-cmd_deck_clear"><strong>cmd_deck_clear</strong></a>(args)</dt><dd><span class="code">Blank&nbsp;every&nbsp;key&nbsp;on&nbsp;the&nbsp;first&nbsp;available&nbsp;deck.</span></dd></dl>
+ <dl><dt><a name="-cmd_deck_demo"><strong>cmd_deck_demo</strong></a>(args)</dt><dd><span class="code">Render&nbsp;the&nbsp;indexed&nbsp;demo&nbsp;pattern&nbsp;on&nbsp;the&nbsp;first&nbsp;available&nbsp;deck.</span></dd></dl>
+ <dl><dt><a name="-cmd_deck_fill"><strong>cmd_deck_fill</strong></a>(args)</dt><dd><span class="code">Paint&nbsp;every&nbsp;key&nbsp;on&nbsp;the&nbsp;first&nbsp;available&nbsp;deck&nbsp;with&nbsp;one&nbsp;style.</span></dd></dl>
+ <dl><dt><a name="-cmd_deck_key"><strong>cmd_deck_key</strong></a>(args)</dt><dd><span class="code">Paint&nbsp;a&nbsp;single&nbsp;key&nbsp;on&nbsp;the&nbsp;first&nbsp;available&nbsp;deck.</span></dd></dl>
+ <dl><dt><a name="-cmd_deck_list"><strong>cmd_deck_list</strong></a>(_args)</dt><dd><span class="code">List&nbsp;connected&nbsp;Stream&nbsp;Deck&nbsp;devices.</span></dd></dl>
+ <dl><dt><a name="-cmd_iterm_frontmost"><strong>cmd_iterm_frontmost</strong></a>(_args)</dt><dd><span class="code">Print&nbsp;the&nbsp;current&nbsp;frontmost&nbsp;iTerm&nbsp;session&nbsp;name.</span></dd></dl>
+ <dl><dt><a name="-cmd_iterm_info"><strong>cmd_iterm_info</strong></a>(_args)</dt><dd><span class="code">Show&nbsp;the&nbsp;current&nbsp;configured&nbsp;and&nbsp;discovered&nbsp;iTerm&nbsp;snapshot.</span></dd></dl>
+ <dl><dt><a name="-collect_iterm_snapshot"><strong>collect_iterm_snapshot</strong></a>(host=None, config_store=None)</dt><dd><span class="code">Collect&nbsp;mapped&nbsp;row&nbsp;info&nbsp;plus&nbsp;raw&nbsp;iTerm&nbsp;session&nbsp;details.</span></dd></dl>
+ <dl><dt><a name="-list_decks"><strong>list_decks</strong></a>(out=None)</dt><dd><span class="code">Print&nbsp;connected&nbsp;Stream&nbsp;Deck&nbsp;devices&nbsp;and&nbsp;basic&nbsp;capabilities.</span></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>(argv=None)</dt><dd><span class="code">Parse&nbsp;arguments&nbsp;and&nbsp;dispatch&nbsp;the&nbsp;selected&nbsp;devtools&nbsp;command.</span></dd></dl>
+ <dl><dt><a name="-open_first_deck"><strong>open_first_deck</strong></a>()</dt><dd><span class="code">Yield&nbsp;the&nbsp;first&nbsp;Stream&nbsp;Deck&nbsp;device&nbsp;that&nbsp;can&nbsp;be&nbsp;opened.</span></dd></dl>
+ <dl><dt><a name="-paint_all_keys"><strong>paint_all_keys</strong></a>(deck, renderer, label, bg, fg)</dt><dd><span class="code">Fill&nbsp;every&nbsp;key&nbsp;on&nbsp;the&nbsp;deck&nbsp;with&nbsp;the&nbsp;same&nbsp;rendered&nbsp;image.</span></dd></dl>
+ <dl><dt><a name="-paint_demo"><strong>paint_demo</strong></a>(deck, renderer)</dt><dd><span class="code">Paint&nbsp;the&nbsp;deck&nbsp;with&nbsp;a&nbsp;simple&nbsp;per-key&nbsp;color&nbsp;and&nbsp;index&nbsp;demo.</span></dd></dl>
+ <dl><dt><a name="-paint_key"><strong>paint_key</strong></a>(deck, renderer, key, label, bg, fg)</dt><dd><span class="code">Render&nbsp;one&nbsp;deck&nbsp;key&nbsp;with&nbsp;the&nbsp;supplied&nbsp;label&nbsp;and&nbsp;colors.</span></dd></dl>
+ <dl><dt><a name="-parse_color"><strong>parse_color</strong></a>(value, fallback)</dt><dd><span class="code">Parse&nbsp;a&nbsp;config-style&nbsp;hex&nbsp;color,&nbsp;or&nbsp;return&nbsp;the&nbsp;provided&nbsp;fallback.</span></dd></dl>
+ <dl><dt><a name="-print_iterm_snapshot"><strong>print_iterm_snapshot</strong></a>(snapshot, out=None)</dt><dd><span class="code">Print&nbsp;a&nbsp;human-readable&nbsp;snapshot&nbsp;gathered&nbsp;from&nbsp;iTerm&nbsp;and&nbsp;config.</span></dd></dl>
+ <dl><dt><a name="-set_brightness"><strong>set_brightness</strong></a>(deck, brightness)</dt><dd><span class="code">Set&nbsp;deck&nbsp;brightness&nbsp;without&nbsp;additional&nbsp;validation.</span></dd></dl>
+ <dl><dt><a name="-wait_after_update"><strong>wait_after_update</strong></a>(wait_seconds=0, hold=False)</dt><dd><span class="code">Delay&nbsp;exit&nbsp;long&nbsp;enough&nbsp;to&nbsp;inspect&nbsp;a&nbsp;rendered&nbsp;deck&nbsp;state.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>BRIGHTNESS</strong> = 80<br>
+<strong>COLOR_BG_DEFAULT</strong> = (0, 0, 0)<br>
+<strong>COLOR_FG_DEFAULT</strong> = (255, 255, 255)<br>
+<strong>TOTAL_KEYS</strong> = 15</td></tr></table>
+</body></html>

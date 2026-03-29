@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module menubar</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">menubar</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/menubar.py">/Users/chodges/src/ClawDeck/menubar.py</a></td></tr></table>
+    <p><span class="code">ClawDeck&nbsp;Menu&nbsp;Bar&nbsp;<a href="rumps.rumps.html#App">App</a>&nbsp;—&nbsp;wraps&nbsp;DeckController&nbsp;in&nbsp;a&nbsp;macOS&nbsp;menu&nbsp;bar&nbsp;interface.<br>
+&nbsp;<br>
+Provides:<br>
+&nbsp;&nbsp;-&nbsp;Start/Stop&nbsp;Stream&nbsp;Deck&nbsp;controller<br>
+&nbsp;&nbsp;-&nbsp;Status&nbsp;indicator&nbsp;in&nbsp;menu&nbsp;bar<br>
+&nbsp;&nbsp;-&nbsp;Settings&nbsp;window&nbsp;(local&nbsp;HTTP&nbsp;server&nbsp;+&nbsp;browser)<br>
+&nbsp;&nbsp;-&nbsp;Session-map&nbsp;rescan<br>
+&nbsp;&nbsp;-&nbsp;Install/update&nbsp;hooks</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="os.html">os</a><br>
+<a href="rumps.html">rumps</a><br>
+</td><td class="multicolumn"><a href="subprocess.html">subprocess</a><br>
+<a href="sys.html">sys</a><br>
+</td><td class="multicolumn"><a href="threading.html">threading</a><br>
+<a href="webbrowser.html">webbrowser</a><br>
+</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="rumps.rumps.html#App">rumps.rumps.App</a>(<a href="builtins.html#object">builtins.object</a>)
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="menubar.html#ClawDeckApp">ClawDeckApp</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="ClawDeckApp">class <strong>ClawDeckApp</strong></a>(<a href="rumps.rumps.html#App">rumps.rumps.App</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code">Menu&nbsp;bar&nbsp;wrapper&nbsp;that&nbsp;starts&nbsp;and&nbsp;stops&nbsp;the&nbsp;deck&nbsp;controller.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>Method resolution order:</dt>
+<dd><a href="menubar.html#ClawDeckApp">ClawDeckApp</a></dd>
+<dd><a href="rumps.rumps.html#App">rumps.rumps.App</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ClawDeckApp-__init__"><strong>__init__</strong></a>(self)</dt><dd><span class="code">Create&nbsp;menu&nbsp;items&nbsp;and&nbsp;start&nbsp;the&nbsp;shared&nbsp;settings&nbsp;server.</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-install_hooks"><strong>install_hooks</strong></a>(self, _)</dt><dd><span class="code">Run&nbsp;the&nbsp;hook&nbsp;installer&nbsp;and&nbsp;surface&nbsp;the&nbsp;result&nbsp;as&nbsp;a&nbsp;notification.</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-open_settings"><strong>open_settings</strong></a>(self, _)</dt><dd><span class="code">Open&nbsp;the&nbsp;local&nbsp;settings&nbsp;page&nbsp;in&nbsp;the&nbsp;default&nbsp;browser.</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-quit_app"><strong>quit_app</strong></a>(self, _)</dt><dd><span class="code">Shut&nbsp;down&nbsp;all&nbsp;services&nbsp;and&nbsp;exit&nbsp;the&nbsp;menu&nbsp;bar&nbsp;app.</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-rescan_sessions"><strong>rescan_sessions</strong></a>(self, _)</dt><dd><span class="code">Refresh&nbsp;iTerm&nbsp;session&nbsp;mappings&nbsp;for&nbsp;the&nbsp;running&nbsp;controller.</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-toggle_controller"><strong>toggle_controller</strong></a>(self, sender)</dt><dd><span class="code">Toggle&nbsp;the&nbsp;controller&nbsp;runtime&nbsp;from&nbsp;the&nbsp;menu&nbsp;bar.</span></dd></dl>
+
+<hr>
+Methods inherited from <a href="rumps.rumps.html#App">rumps.rumps.App</a>:<br>
+<dl><dt><a name="ClawDeckApp-open"><strong>open</strong></a>(self, *args)</dt><dd><span class="code">Open&nbsp;a&nbsp;file&nbsp;within&nbsp;the&nbsp;application&nbsp;support&nbsp;folder&nbsp;for&nbsp;this&nbsp;application.<br>
+&nbsp;<br>
+..&nbsp;code-block::&nbsp;python<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app&nbsp;=&nbsp;<a href="rumps.rumps.html#App">App</a>('Cool&nbsp;<a href="rumps.rumps.html#App">App</a>')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;app.<a href="#ClawDeckApp-open">open</a>('data.json')&nbsp;as&nbsp;f:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pass<br>
+&nbsp;<br>
+Is&nbsp;a&nbsp;shortcut&nbsp;for,<br>
+&nbsp;<br>
+..&nbsp;code-block::&nbsp;python<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app&nbsp;=&nbsp;<a href="rumps.rumps.html#App">App</a>('Cool&nbsp;<a href="rumps.rumps.html#App">App</a>')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filename&nbsp;=&nbsp;os.path.join(application_support(app.name),&nbsp;'data.json')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;<a href="#ClawDeckApp-open">open</a>(filename)&nbsp;as&nbsp;f:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pass</span></dd></dl>
+
+<dl><dt><a name="ClawDeckApp-run"><strong>run</strong></a>(self, **options)</dt><dd><span class="code">Performs&nbsp;various&nbsp;setup&nbsp;tasks&nbsp;including&nbsp;creating&nbsp;the&nbsp;underlying&nbsp;Objective-C&nbsp;application,&nbsp;starting&nbsp;the&nbsp;timers,<br>
+and&nbsp;registering&nbsp;callback&nbsp;functions&nbsp;for&nbsp;click&nbsp;events.&nbsp;Then&nbsp;starts&nbsp;the&nbsp;application&nbsp;run&nbsp;loop.<br>
+&nbsp;<br>
+..&nbsp;versionchanged::&nbsp;0.2.1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Accepts&nbsp;`debug`&nbsp;keyword&nbsp;argument.<br>
+&nbsp;<br>
+:param&nbsp;debug:&nbsp;determines&nbsp;if&nbsp;application&nbsp;should&nbsp;log&nbsp;information&nbsp;useful&nbsp;for&nbsp;debugging.&nbsp;Same&nbsp;effect&nbsp;as&nbsp;calling<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:func:`rumps.debug_mode`.</span></dd></dl>
+
+<hr>
+Readonly properties inherited from <a href="rumps.rumps.html#App">rumps.rumps.App</a>:<br>
+<dl><dt><strong>name</strong></dt>
+<dd><span class="code">The&nbsp;name&nbsp;of&nbsp;the&nbsp;application.&nbsp;Determines&nbsp;the&nbsp;application&nbsp;support&nbsp;folder&nbsp;name.&nbsp;Will&nbsp;also&nbsp;serve&nbsp;as&nbsp;the&nbsp;title<br>
+text&nbsp;of&nbsp;the&nbsp;application&nbsp;if&nbsp;:attr:`title`&nbsp;is&nbsp;not&nbsp;set.</span></dd>
+</dl>
+<hr>
+Data descriptors inherited from <a href="rumps.rumps.html#App">rumps.rumps.App</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+<dl><dt><strong>icon</strong></dt>
+<dd><span class="code">A&nbsp;path&nbsp;to&nbsp;an&nbsp;image&nbsp;representing&nbsp;the&nbsp;icon&nbsp;that&nbsp;will&nbsp;be&nbsp;displayed&nbsp;for&nbsp;the&nbsp;application&nbsp;in&nbsp;the&nbsp;statusbar.<br>
+Can&nbsp;be&nbsp;``None``&nbsp;in&nbsp;which&nbsp;case&nbsp;the&nbsp;text&nbsp;from&nbsp;:attr:`title`&nbsp;will&nbsp;be&nbsp;used.<br>
+&nbsp;<br>
+..&nbsp;versionchanged::&nbsp;0.2.0<br>
+&nbsp;&nbsp;&nbsp;If&nbsp;the&nbsp;icon&nbsp;is&nbsp;set&nbsp;to&nbsp;an&nbsp;image&nbsp;then&nbsp;changed&nbsp;to&nbsp;``None``,&nbsp;it&nbsp;will&nbsp;correctly&nbsp;be&nbsp;removed.</span></dd>
+</dl>
+<dl><dt><strong>menu</strong></dt>
+<dd><span class="code">Represents&nbsp;the&nbsp;main&nbsp;menu&nbsp;of&nbsp;the&nbsp;statusbar&nbsp;application.&nbsp;Setting&nbsp;`menu`&nbsp;works&nbsp;by&nbsp;calling<br>
+:meth:`rumps.MenuItem.update`.</span></dd>
+</dl>
+<dl><dt><strong>quit_button</strong></dt>
+<dd><span class="code">The&nbsp;quit&nbsp;application&nbsp;menu&nbsp;item&nbsp;within&nbsp;the&nbsp;main&nbsp;menu.&nbsp;This&nbsp;is&nbsp;a&nbsp;special&nbsp;:class:`rumps.MenuItem`&nbsp;object&nbsp;that<br>
+will&nbsp;both&nbsp;replace&nbsp;any&nbsp;function&nbsp;callback&nbsp;with&nbsp;:func:`rumps.quit_application`&nbsp;and&nbsp;add&nbsp;itself&nbsp;to&nbsp;the&nbsp;end&nbsp;of&nbsp;the<br>
+main&nbsp;menu&nbsp;when&nbsp;:meth:`rumps.App.run`&nbsp;is&nbsp;called.&nbsp;If&nbsp;set&nbsp;to&nbsp;``None``,&nbsp;the&nbsp;default&nbsp;quit&nbsp;button&nbsp;will&nbsp;not&nbsp;be&nbsp;added.<br>
+&nbsp;<br>
+..&nbsp;warning::<br>
+&nbsp;&nbsp;&nbsp;If&nbsp;set&nbsp;to&nbsp;``None``,&nbsp;some&nbsp;other&nbsp;menu&nbsp;item&nbsp;should&nbsp;call&nbsp;:func:`rumps.quit_application`&nbsp;so&nbsp;that&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;application&nbsp;can&nbsp;exit&nbsp;gracefully.<br>
+&nbsp;<br>
+..&nbsp;versionadded::&nbsp;0.2.0</span></dd>
+</dl>
+<dl><dt><strong>template</strong></dt>
+<dd><span class="code">Template&nbsp;mode&nbsp;for&nbsp;an&nbsp;icon.&nbsp;If&nbsp;set&nbsp;to&nbsp;``None``,&nbsp;the&nbsp;current&nbsp;icon&nbsp;(if&nbsp;any)&nbsp;is&nbsp;displayed&nbsp;as&nbsp;a&nbsp;color&nbsp;icon.<br>
+If&nbsp;set&nbsp;to&nbsp;``True``,&nbsp;template&nbsp;mode&nbsp;is&nbsp;enabled&nbsp;and&nbsp;the&nbsp;icon&nbsp;will&nbsp;be&nbsp;displayed&nbsp;correctly&nbsp;in&nbsp;dark&nbsp;menu&nbsp;bar&nbsp;mode.</span></dd>
+</dl>
+<dl><dt><strong>title</strong></dt>
+<dd><span class="code">The&nbsp;text&nbsp;that&nbsp;will&nbsp;be&nbsp;displayed&nbsp;for&nbsp;the&nbsp;application&nbsp;in&nbsp;the&nbsp;statusbar.&nbsp;Can&nbsp;be&nbsp;``None``&nbsp;in&nbsp;which&nbsp;case&nbsp;the&nbsp;icon<br>
+will&nbsp;be&nbsp;used&nbsp;or,&nbsp;if&nbsp;there&nbsp;is&nbsp;no&nbsp;icon&nbsp;set&nbsp;the&nbsp;application&nbsp;text&nbsp;will&nbsp;fallback&nbsp;on&nbsp;the&nbsp;application&nbsp;:attr:`name`.<br>
+&nbsp;<br>
+..&nbsp;versionchanged::&nbsp;0.2.0<br>
+&nbsp;&nbsp;&nbsp;If&nbsp;the&nbsp;title&nbsp;is&nbsp;set&nbsp;then&nbsp;changed&nbsp;to&nbsp;``None``,&nbsp;it&nbsp;will&nbsp;correctly&nbsp;be&nbsp;removed.&nbsp;Must&nbsp;be&nbsp;either&nbsp;a&nbsp;string&nbsp;or<br>
+&nbsp;&nbsp;&nbsp;``None``.</span></dd>
+</dl>
+<hr>
+Data and other attributes inherited from <a href="rumps.rumps.html#App">rumps.rumps.App</a>:<br>
+<dl><dt><strong>serializer</strong> = &lt;module 'pickle' from '/opt/homebrew/Cellar/pyth...ramework/Versions/3.13/lib/python3.13/pickle.py'&gt;<dd><span class="code">Create&nbsp;portable&nbsp;serialized&nbsp;representations&nbsp;of&nbsp;Python&nbsp;objects.<br>
+&nbsp;<br>
+See&nbsp;module&nbsp;copyreg&nbsp;for&nbsp;a&nbsp;mechanism&nbsp;for&nbsp;registering&nbsp;custom&nbsp;picklers.<br>
+See&nbsp;module&nbsp;pickletools&nbsp;source&nbsp;for&nbsp;extensive&nbsp;comments.<br>
+&nbsp;<br>
+Classes:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Pickler<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Unpickler<br>
+&nbsp;<br>
+Functions:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dump(object,&nbsp;file)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dumps(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;load(file)&nbsp;-&gt;&nbsp;object<br>
+&nbsp;&nbsp;&nbsp;&nbsp;loads(bytes)&nbsp;-&gt;&nbsp;object<br>
+&nbsp;<br>
+Misc&nbsp;variables:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;__version__<br>
+&nbsp;&nbsp;&nbsp;&nbsp;format_version<br>
+&nbsp;&nbsp;&nbsp;&nbsp;compatible_formats</span></dl>
+
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>PROJECT_ROOT</strong> = PosixPath('/Users/chodges/src/ClawDeck')</td></tr></table>
+</body></html>

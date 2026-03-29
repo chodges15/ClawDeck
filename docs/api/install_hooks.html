@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module install_hooks</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">install_hooks</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/install_hooks.py">/Users/chodges/src/ClawDeck/install_hooks.py</a></td></tr></table>
+    <p><span class="code">Install&nbsp;Claude&nbsp;Code&nbsp;hooks&nbsp;for&nbsp;clawdeck.<br>
+&nbsp;<br>
+Merges&nbsp;hook&nbsp;entries&nbsp;into&nbsp;~/.claude/settings.json&nbsp;without&nbsp;clobbering<br>
+existing&nbsp;hooks&nbsp;from&nbsp;other&nbsp;sources.&nbsp;Uses&nbsp;the&nbsp;"_source":&nbsp;"clawdeck"<br>
+tag&nbsp;to&nbsp;identify&nbsp;and&nbsp;replace&nbsp;our&nbsp;entries&nbsp;on&nbsp;re-runs.<br>
+&nbsp;<br>
+Called&nbsp;by&nbsp;setup.sh&nbsp;after&nbsp;the&nbsp;venv&nbsp;is&nbsp;ready.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="json.html">json</a><br>
+</td><td class="multicolumn"><a href="os.html">os</a><br>
+</td><td class="multicolumn"><a href="shutil.html">shutil</a><br>
+</td><td class="multicolumn"><a href="sys.html">sys</a><br>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-build_hooks"><strong>build_hooks</strong></a>(deck_hook_path)</dt><dd><span class="code">Build&nbsp;the&nbsp;hook&nbsp;config&nbsp;with&nbsp;the&nbsp;actual&nbsp;install&nbsp;path.</span></dd></dl>
+ <dl><dt><a name="-is_our_entry"><strong>is_our_entry</strong></a>(entry)</dt><dd><span class="code">Check&nbsp;if&nbsp;a&nbsp;hook&nbsp;entry&nbsp;belongs&nbsp;to&nbsp;clawdeck.</span></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>()</dt><dd><span class="code">Preview,&nbsp;confirm,&nbsp;and&nbsp;install&nbsp;the&nbsp;ClawDeck&nbsp;Claude&nbsp;hook&nbsp;set.</span></dd></dl>
+ <dl><dt><a name="-merge_hooks"><strong>merge_hooks</strong></a>(existing_hooks, new_hooks)</dt><dd><span class="code">Merge&nbsp;new&nbsp;hooks&nbsp;into&nbsp;existing&nbsp;hooks,&nbsp;replacing&nbsp;our&nbsp;old&nbsp;entries.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>SETTINGS_PATH</strong> = '/Users/chodges/.claude/settings.json'<br>
+<strong>SOURCE_TAG</strong> = 'clawdeck'</td></tr></table>
+</body></html>

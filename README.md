@@ -114,6 +114,16 @@ Useful knobs:
 - `BRIGHTNESS=40` sets deck brightness for the utility command
 - `BG` and `FG` are hex colors without the leading `#`
 
+## API Docs
+
+Generate static `pydoc` HTML into `docs/` for GitHub Pages:
+
+```bash
+make docs-pydoc
+```
+
+This writes API pages to `docs/api/`, creates a landing page at `docs/index.html`, and adds `docs/.nojekyll` so GitHub Pages can serve the generated files directly from the repo's `docs/` folder.
+
 ## Settings UI
 
 A settings page is available at `http://127.0.0.1:19830` while the controller is running. Type `settings` in the REPL to open it. From here you can configure:

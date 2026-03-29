@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module clawdeck.cli</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="clawdeck.html" class="white">clawdeck</a>.cli</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/clawdeck/cli.py">/Users/chodges/src/ClawDeck/clawdeck/cli.py</a></td></tr></table>
+    <p><span class="code">ClawDeck&nbsp;—&nbsp;Stream&nbsp;Deck&nbsp;controller&nbsp;for&nbsp;Claude&nbsp;Code&nbsp;terminal&nbsp;sessions<br>
+&nbsp;<br>
+Maps&nbsp;a&nbsp;5x3&nbsp;(15-key)&nbsp;Elgato&nbsp;Stream&nbsp;Deck&nbsp;into&nbsp;three&nbsp;horizontal&nbsp;session&nbsp;rows:<br>
+&nbsp;<br>
+ROW&nbsp;MODE&nbsp;(default):<br>
+&nbsp;&nbsp;┌─────┬─────┬─────┬─────┬─────┐<br>
+&nbsp;&nbsp;│&nbsp;T1&nbsp;&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│<br>
+&nbsp;&nbsp;├─────┼─────┼─────┼─────┼─────┤<br>
+&nbsp;&nbsp;│&nbsp;T2&nbsp;&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│<br>
+&nbsp;&nbsp;├─────┼─────┼─────┼─────┼─────┤<br>
+&nbsp;&nbsp;│&nbsp;T3&nbsp;&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│info&nbsp;│<br>
+&nbsp;&nbsp;└─────┴─────┴─────┴─────┴─────┘<br>
+&nbsp;&nbsp;-&nbsp;Label&nbsp;key&nbsp;shows&nbsp;session&nbsp;status&nbsp;and&nbsp;focuses&nbsp;the&nbsp;mapped&nbsp;iTerm2&nbsp;session<br>
+&nbsp;&nbsp;-&nbsp;Tap&nbsp;the&nbsp;active&nbsp;label&nbsp;key&nbsp;again&nbsp;to&nbsp;enter&nbsp;Nav&nbsp;Mode<br>
+&nbsp;&nbsp;-&nbsp;If&nbsp;Claude&nbsp;is&nbsp;waiting&nbsp;for&nbsp;permission,&nbsp;tap&nbsp;the&nbsp;label&nbsp;key&nbsp;to&nbsp;approve&nbsp;with&nbsp;`y`<br>
+&nbsp;&nbsp;-&nbsp;Hold&nbsp;a&nbsp;label&nbsp;key&nbsp;to&nbsp;focus&nbsp;that&nbsp;session&nbsp;and&nbsp;trigger&nbsp;Whisprflow<br>
+&nbsp;&nbsp;-&nbsp;The&nbsp;four&nbsp;info&nbsp;keys&nbsp;show&nbsp;the&nbsp;CWD,&nbsp;or&nbsp;a&nbsp;scrolling&nbsp;command&nbsp;preview&nbsp;in&nbsp;permission&nbsp;state<br>
+&nbsp;<br>
+NAV&nbsp;MODE:<br>
+&nbsp;&nbsp;┌─────┬─────┬─────┬─────┬─────┐<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;1&nbsp;&nbsp;│&nbsp;&nbsp;2&nbsp;&nbsp;│&nbsp;&nbsp;3&nbsp;&nbsp;│&nbsp;&nbsp;4&nbsp;&nbsp;│&nbsp;&nbsp;5&nbsp;&nbsp;│<br>
+&nbsp;&nbsp;├─────┼─────┼─────┼─────┼─────┤<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;↑&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│BACK&nbsp;│<br>
+&nbsp;&nbsp;├─────┼─────┼─────┼─────┼─────┤<br>
+&nbsp;&nbsp;│&nbsp;MIC&nbsp;│&nbsp;&nbsp;←&nbsp;&nbsp;│&nbsp;&nbsp;↓&nbsp;&nbsp;│&nbsp;&nbsp;→&nbsp;&nbsp;│&nbsp;&nbsp;⏎&nbsp;&nbsp;│<br>
+&nbsp;&nbsp;└─────┴─────┴─────┴─────┴─────┘</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="sys.html">sys</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-main"><strong>main</strong></a>(argv=None)</dt><dd><span class="code">Run&nbsp;the&nbsp;CLI&nbsp;entrypoint&nbsp;and&nbsp;honor&nbsp;the&nbsp;built-in&nbsp;help&nbsp;screen.</span></dd></dl>
+</td></tr></table>
+</body></html>

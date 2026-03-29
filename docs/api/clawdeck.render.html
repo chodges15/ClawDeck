@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module clawdeck.render</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="clawdeck.html" class="white">clawdeck</a>.render</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/clawdeck/render.py">/Users/chodges/src/ClawDeck/clawdeck/render.py</a></td></tr></table>
+    <p><span class="code">Rendering&nbsp;helpers&nbsp;that&nbsp;turn&nbsp;controller&nbsp;state&nbsp;into&nbsp;Stream&nbsp;Deck&nbsp;images.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="PIL.Image.html">PIL.Image</a><br>
+</td><td class="multicolumn"><a href="PIL.ImageDraw.html">PIL.ImageDraw</a><br>
+</td><td class="multicolumn"><a href="PIL.ImageFont.html">PIL.ImageFont</a><br>
+</td><td class="multicolumn"><a href="StreamDeck.ImageHelpers.PILHelper.html">StreamDeck.ImageHelpers.PILHelper</a><br>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="clawdeck.render.html#DeckRenderer">DeckRenderer</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="DeckRenderer">class <strong>DeckRenderer</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#DeckRenderer">DeckRenderer</a>(config_store=None)<br>
+&nbsp;<br>
+Render&nbsp;row-mode,&nbsp;nav-mode,&nbsp;and&nbsp;scrolling&nbsp;status&nbsp;button&nbsp;images.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="DeckRenderer-__init__"><strong>__init__</strong></a>(self, config_store=None)</dt><dd><span class="code">Initialize&nbsp;the&nbsp;renderer&nbsp;and&nbsp;load&nbsp;its&nbsp;font&nbsp;set.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-advance_scroll_offset"><strong>advance_scroll_offset</strong></a>(self, state, config, label_key, strip_width)</dt><dd><span class="code">Advance&nbsp;one&nbsp;permission-row&nbsp;marquee&nbsp;offset&nbsp;based&nbsp;on&nbsp;scroll&nbsp;speed.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-advance_scroll_offsets"><strong>advance_scroll_offsets</strong></a>(self, deck, state, config)</dt><dd><span class="code">Advance&nbsp;marquee&nbsp;offsets&nbsp;for&nbsp;every&nbsp;permission&nbsp;row.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-button_dimensions"><strong>button_dimensions</strong></a>(self, deck)</dt><dd><span class="code">Return&nbsp;the&nbsp;rendered&nbsp;button&nbsp;size&nbsp;for&nbsp;a&nbsp;deck.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-draw_nav_mode"><strong>draw_nav_mode</strong></a>(self, deck, state, config)</dt><dd><span class="code">Render&nbsp;the&nbsp;full&nbsp;deck&nbsp;in&nbsp;navigation&nbsp;mode.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-draw_row_mode"><strong>draw_row_mode</strong></a>(self, deck, state, config)</dt><dd><span class="code">Render&nbsp;the&nbsp;full&nbsp;deck&nbsp;in&nbsp;row&nbsp;mode.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-ensure_scroll_strip"><strong>ensure_scroll_strip</strong></a>(self, deck, state, config, label_key)</dt><dd><span class="code">Cache&nbsp;and&nbsp;return&nbsp;the&nbsp;scrolling&nbsp;strip&nbsp;for&nbsp;a&nbsp;permission&nbsp;row.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-first_display_value"><strong>first_display_value</strong></a>(self, value)</dt><dd><span class="code">Extract&nbsp;the&nbsp;first&nbsp;printable&nbsp;leaf&nbsp;value&nbsp;from&nbsp;nested&nbsp;tool&nbsp;input.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-format_cwd"><strong>format_cwd</strong></a>(self, config, path)</dt><dd><span class="code">Format&nbsp;a&nbsp;working-directory&nbsp;path&nbsp;for&nbsp;button&nbsp;subtitle&nbsp;display.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-format_tool_command"><strong>format_tool_command</strong></a>(self, tool_info)</dt><dd><span class="code">Build&nbsp;a&nbsp;short&nbsp;permission-prompt&nbsp;summary&nbsp;from&nbsp;tool&nbsp;metadata.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-get_nav_style"><strong>get_nav_style</strong></a>(self, config, key)</dt><dd><span class="code">Resolve&nbsp;nav-button&nbsp;styling&nbsp;with&nbsp;user&nbsp;color&nbsp;overrides&nbsp;applied.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-get_slot_style"><strong>get_slot_style</strong></a>(self, config, state, slot)</dt><dd><span class="code">Resolve&nbsp;the&nbsp;label-button&nbsp;palette&nbsp;for&nbsp;a&nbsp;session&nbsp;slot.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-pick_font"><strong>pick_font</strong></a>(self, label)</dt><dd><span class="code">Choose&nbsp;a&nbsp;label&nbsp;font&nbsp;size&nbsp;based&nbsp;on&nbsp;label&nbsp;length.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-render_button"><strong>render_button</strong></a>(
+    self,
+    deck,
+    label,
+    bg=(0, 0, 0),
+    fg=(255, 255, 255),
+    border_color=None,
+    border_width=8,
+    subtitle=None
+)</dt><dd><span class="code">Render&nbsp;a&nbsp;single&nbsp;labeled&nbsp;deck&nbsp;button&nbsp;with&nbsp;optional&nbsp;subtitle&nbsp;and&nbsp;border.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-render_scroll_button"><strong>render_scroll_button</strong></a>(self, deck, strip, offset, button_idx)</dt><dd><span class="code">Crop&nbsp;one&nbsp;visible&nbsp;button-sized&nbsp;slice&nbsp;from&nbsp;a&nbsp;scrolling&nbsp;strip.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-render_scroll_strip"><strong>render_scroll_strip</strong></a>(self, deck, config, text)</dt><dd><span class="code">Render&nbsp;the&nbsp;repeating&nbsp;strip&nbsp;used&nbsp;for&nbsp;permission&nbsp;scrolling&nbsp;text.</span></dd></dl>
+
+<dl><dt><a name="DeckRenderer-update_all_buttons"><strong>update_all_buttons</strong></a>(self, deck, state, config)</dt><dd><span class="code">Render&nbsp;the&nbsp;deck&nbsp;in&nbsp;whichever&nbsp;mode&nbsp;is&nbsp;currently&nbsp;active.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>COLOR_BG_ACTIVE</strong> = (255, 176, 0)<br>
+<strong>COLOR_BG_DEFAULT</strong> = (0, 0, 0)<br>
+<strong>COLOR_BG_IDLE</strong> = (30, 100, 220)<br>
+<strong>COLOR_BG_NAV_EMPTY</strong> = (15, 15, 15)<br>
+<strong>COLOR_BG_PERMISSION</strong> = (200, 50, 50)<br>
+<strong>COLOR_BG_WORKING</strong> = (30, 160, 70)<br>
+<strong>COLOR_FG_ACTIVE</strong> = (0, 0, 0)<br>
+<strong>COLOR_FG_DEFAULT</strong> = (255, 255, 255)<br>
+<strong>COLOR_FG_IDLE</strong> = (255, 255, 255)<br>
+<strong>COLOR_FG_PERMISSION</strong> = (255, 255, 255)<br>
+<strong>COLOR_FG_WORKING</strong> = (255, 255, 255)<br>
+<strong>DEFAULT_SCROLL_SPEED</strong> = 2<br>
+<strong>KEYS_PER_ROW</strong> = 5<br>
+<strong>MODE_NAV</strong> = 'nav'<br>
+<strong>NAV_BUTTON_STYLES</strong> = {0: {'bg': (180, 40, 40), 'fg': (255, 255, 255), 'label': '1'}, 1: {'bg': (200, 120, 20), 'fg': (255, 255, 255), 'label': '2'}, 2: {'bg': (190, 175, 20), 'fg': (255, 255, 255), 'label': '3'}, 3: {'bg': (40, 150, 60), 'fg': (255, 255, 255), 'label': '4'}, 4: {'bg': (40, 80, 200), 'fg': (255, 255, 255), 'label': '5'}, 7: {'bg': (30, 35, 55), 'fg': (180, 200, 255), 'label': '↑'}, 9: {'bg': (160, 30, 30), 'fg': (255, 255, 255), 'label': 'BACK'}, 10: {'bg': (230, 230, 230), 'fg': (0, 0, 0), 'label': 'MIC'}, 11: {'bg': (30, 35, 55), 'fg': (180, 200, 255), 'label': '←'}, 12: {'bg': (30, 35, 55), 'fg': (180, 200, 255), 'label': '↓'}, ...}<br>
+<strong>SESSIONS</strong> = ['T1', 'T2', 'T3']<br>
+<strong>TOTAL_KEYS</strong> = 15</td></tr></table>
+</body></html>

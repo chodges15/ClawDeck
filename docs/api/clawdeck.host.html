@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module clawdeck.host</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="clawdeck.html" class="white">clawdeck</a>.host</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/chodges/src/ClawDeck/clawdeck/host.py">/Users/chodges/src/ClawDeck/clawdeck/host.py</a></td></tr></table>
+    <p><span class="code">Host&nbsp;integration&nbsp;helpers&nbsp;for&nbsp;iTerm,&nbsp;Accessibility,&nbsp;and&nbsp;TTY&nbsp;writes.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="json.html">json</a><br>
+</td><td class="multicolumn"><a href="os.html">os</a><br>
+</td><td class="multicolumn"><a href="subprocess.html">subprocess</a><br>
+</td><td class="multicolumn"><a href="sys.html">sys</a><br>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="clawdeck.host.html#HostIntegration">HostIntegration</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="HostIntegration">class <strong>HostIntegration</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code">Perform&nbsp;macOS&nbsp;and&nbsp;iTerm&nbsp;boundary&nbsp;operations&nbsp;for&nbsp;the&nbsp;controller.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="HostIntegration-activate_session"><strong>activate_session</strong></a>(self, config, session)</dt><dd><span class="code">Focus&nbsp;the&nbsp;configured&nbsp;iTerm&nbsp;session&nbsp;for&nbsp;the&nbsp;given&nbsp;logical&nbsp;row.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-approve_permission"><strong>approve_permission</strong></a>(self, tty_name)</dt><dd><span class="code">Write&nbsp;`y`&nbsp;to&nbsp;the&nbsp;TTY&nbsp;backing&nbsp;a&nbsp;permission&nbsp;prompt.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-build_tty_map"><strong>build_tty_map</strong></a>(self, config)</dt><dd><span class="code">Resolve&nbsp;configured&nbsp;sessions&nbsp;into&nbsp;deck-slot&nbsp;TTY&nbsp;and&nbsp;CWD&nbsp;maps.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-check_accessibility"><strong>check_accessibility</strong></a>(self)</dt><dd><span class="code">Check&nbsp;if&nbsp;Accessibility&nbsp;permissions&nbsp;are&nbsp;granted&nbsp;for&nbsp;this&nbsp;terminal&nbsp;app.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-frontmost_session_name"><strong>frontmost_session_name</strong></a>(self)</dt><dd><span class="code">Return&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;currently&nbsp;focused&nbsp;iTerm&nbsp;session.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-get_frontmost_slot"><strong>get_frontmost_slot</strong></a>(self, config)</dt><dd><span class="code">Resolve&nbsp;the&nbsp;frontmost&nbsp;iTerm&nbsp;session&nbsp;into&nbsp;a&nbsp;deck&nbsp;label&nbsp;key.</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-get_iterm_sessions"><strong>get_iterm_sessions</strong></a>(self)</dt><dd><span class="code">Return&nbsp;iTerm2&nbsp;sessions&nbsp;as&nbsp;[{'name':&nbsp;str,&nbsp;'tty':&nbsp;str},&nbsp;...].</span></dd></dl>
+
+<dl><dt><a name="HostIntegration-resolve_tty_cwd"><strong>resolve_tty_cwd</strong></a>(self, tty_name)</dt><dd><span class="code">Get&nbsp;the&nbsp;working&nbsp;directory&nbsp;of&nbsp;the&nbsp;most&nbsp;recent&nbsp;shell&nbsp;on&nbsp;a&nbsp;TTY.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-match_session_name"><strong>match_session_name</strong></a>(config, session_name)</dt><dd><span class="code">Map&nbsp;a&nbsp;raw&nbsp;iTerm&nbsp;session&nbsp;name&nbsp;back&nbsp;to&nbsp;a&nbsp;logical&nbsp;ClawDeck&nbsp;session.</span></dd></dl>
+ <dl><dt><a name="-normalize_tty_name"><strong>normalize_tty_name</strong></a>(tty_name)</dt><dd><span class="code">Normalize&nbsp;`/dev/...`&nbsp;TTY&nbsp;names&nbsp;to&nbsp;the&nbsp;bare&nbsp;device&nbsp;identifier.</span></dd></dl>
+ <dl><dt><a name="-session_pattern"><strong>session_pattern</strong></a>(config, session)</dt><dd><span class="code">Return&nbsp;the&nbsp;configured&nbsp;match&nbsp;pattern&nbsp;for&nbsp;a&nbsp;logical&nbsp;session&nbsp;row.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>ITERM_APP_NAME</strong> = 'iTerm2'<br>
+<strong>SESSIONS</strong> = ['T1', 'T2', 'T3']<br>
+<strong>logger</strong> = &lt;Logger clawdeck (DEBUG)&gt;</td></tr></table>
+</body></html>
