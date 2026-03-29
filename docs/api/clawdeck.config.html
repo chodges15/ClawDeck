@@ -40,12 +40,12 @@
 <td class="section-title" colspan=3>&nbsp;<br><a name="ConfigStore">class <strong>ConfigStore</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
-<td class="decor title-decor" colspan=2><span class="code"><a href="#ConfigStore">ConfigStore</a>(path='/Users/chodges/src/ClawDeck/config.json')<br>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#ConfigStore">ConfigStore</a>(path='<PROJECT_ROOT>/config.json')<br>
 &nbsp;<br>
 Persist&nbsp;and&nbsp;normalize&nbsp;user&nbsp;configuration&nbsp;stored&nbsp;in&nbsp;`config.json`.<br>&nbsp;</span></td></tr>
 <tr><td>&nbsp;</td>
 <td class="singlecolumn">Methods defined here:<br>
-<dl><dt><a name="ConfigStore-__init__"><strong>__init__</strong></a>(self, path='/Users/chodges/src/ClawDeck/config.json')</dt><dd><span class="code">Initialize&nbsp;the&nbsp;store&nbsp;with&nbsp;an&nbsp;optional&nbsp;config&nbsp;path&nbsp;override.</span></dd></dl>
+<dl><dt><a name="ConfigStore-__init__"><strong>__init__</strong></a>(self, path='<PROJECT_ROOT>/config.json')</dt><dd><span class="code">Initialize&nbsp;the&nbsp;store&nbsp;with&nbsp;an&nbsp;optional&nbsp;config&nbsp;path&nbsp;override.</span></dd></dl>
 
 <dl><dt><a name="ConfigStore-apply_update"><strong>apply_update</strong></a>(self, config, updates, save=True)</dt><dd><span class="code">Merge&nbsp;an&nbsp;update&nbsp;payload&nbsp;into&nbsp;config&nbsp;and&nbsp;optionally&nbsp;persist&nbsp;it.</span></dd></dl>
 
@@ -92,11 +92,11 @@ Data descriptors defined here:<br>
 <strong>COLOR_BG_PERMISSION</strong> = (200, 50, 50)<br>
 <strong>COLOR_BG_WORKING</strong> = (30, 160, 70)<br>
 <strong>CONFIG_DEFAULTS</strong> = {'brightness': 80, 'button_labels': True, 'colors': {'active': '#ffb000', 'arrows': '#1e2337', 'idle': '#1e64dc', 'label_text': '#000000', 'mic_enter': '#e6e6e6', 'num_1': '#b42828', 'num_2': '#c87814', 'num_3': '#beaf14', 'num_4': '#28963c', 'num_5': '#2850c8', ...}, 'folder_label': 'last', 'hold_threshold': 0.5, 'idle_timeout': 3600, 'mic_command': 'fn', 'poll_interval': 0.2, 'scroll_speed': 2, 'session_map': {'T1': '', 'T2': '', 'T3': ''}}<br>
-<strong>CONFIG_FILE</strong> = '/Users/chodges/src/ClawDeck/config.json'<br>
+<strong>CONFIG_FILE</strong> = '<PROJECT_ROOT>/config.json'<br>
 <strong>DEFAULT_SCROLL_SPEED</strong> = 2<br>
 <strong>HOLD_THRESHOLD_SEC</strong> = 0.5<br>
 <strong>POLL_INTERVAL</strong> = 0.2<br>
-<strong>PROJECT_ROOT</strong> = PosixPath('/Users/chodges/src/ClawDeck')<br>
+<strong>PROJECT_ROOT</strong> = PosixPath('<PROJECT_ROOT>')<br>
 <strong>SESSIONS</strong> = ['T1', 'T2', 'T3']<br>
 <strong>STATUS_STALE_SEC</strong> = 3600<br>
 <strong>logger</strong> = &lt;Logger clawdeck (DEBUG)&gt;</td></tr></table>

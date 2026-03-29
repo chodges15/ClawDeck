@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = ROOT / "docs"
 API_DIR = DOCS_DIR / "api"
 STYLESHEET_PATH = DOCS_DIR / "pydoc.css"
+HOME_DIR = Path.home()
 
 HEAD_RE = re.compile(
     r"<head>\s*<meta charset=\"utf-8\">\s*<title>(.*?)</title>\s*</head>",
@@ -319,6 +320,23 @@ def sanitize_source_links(text: str) -> str:
     return FILE_LINK_RE.sub(replace, text)
 
 
+def sanitize_path_literals(text: str) -> str:
+    """Replace local absolute paths in rendered values with portable placeholders."""
+    replacements = (
+        (f"PosixPath('{ROOT.as_posix()}')", "PosixPath('<PROJECT_ROOT>')"),
+        (str(ROOT / "config.json"), "<PROJECT_ROOT>/config.json"),
+        (str(ROOT / ".deck-overlay.json"), "<PROJECT_ROOT>/.deck-overlay.json"),
+        (str(HOME_DIR / ".claude" / "settings.json"), "~/.claude/settings.json"),
+    )
+    for old, new in replacements:
+        text = text.replace(old, new)
+
+    # Fall back to a home-relative placeholder for any other leaked absolute home path.
+    home_prefix = HOME_DIR.as_posix().rstrip("/")
+    text = text.replace(f"{home_prefix}/", "~/")
+    return text
+
+
 def style_api_page(path: Path) -> None:
     """Inject shared styling and fix links in one generated pydoc page."""
     text = path.read_text(encoding="utf-8")
@@ -338,6 +356,7 @@ def style_api_page(path: Path) -> None:
     text = BODY_RE.sub('<body class="pydoc-page">', text, count=1)
     text = INDEX_LINK_RE.sub('href="index.html"', text)
     text = sanitize_source_links(text)
+    text = sanitize_path_literals(text)
     path.write_text(text, encoding="utf-8")
 
 
