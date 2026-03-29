@@ -1,3 +1,5 @@
+"""Tests for working-directory subtitle formatting modes."""
+
 from pathlib import Path
 
 

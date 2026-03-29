@@ -1,3 +1,5 @@
+"""Developer utilities for inspecting host state and painting deck keys."""
+
 import argparse
 from contextlib import contextmanager
 import sys
@@ -12,12 +14,14 @@ from .render import DeckRenderer
 
 
 def parse_color(value, fallback):
+    """Parse a config-style hex color, or return the provided fallback."""
     if value in (None, ""):
         return fallback
     return hex_to_rgb(value)
 
 
 def collect_iterm_snapshot(host=None, config_store=None):
+    """Collect mapped row info plus raw iTerm session details."""
     host = host or HostIntegration()
     config_store = config_store or ConfigStore()
     config = config_store.load()
@@ -57,6 +61,7 @@ def collect_iterm_snapshot(host=None, config_store=None):
 
 
 def print_iterm_snapshot(snapshot, out=None):
+    """Print a human-readable snapshot gathered from iTerm and config."""
     out = out or sys.stdout
     print("Frontmost:", snapshot["frontmost"] or "-", file=out)
     print("", file=out)
@@ -89,6 +94,7 @@ def print_iterm_snapshot(snapshot, out=None):
 
 @contextmanager
 def open_first_deck():
+    """Yield the first Stream Deck device that can be opened."""
     devices = DeviceManager().enumerate()
     if not devices:
         raise RuntimeError("No Stream Deck devices found.")
@@ -115,6 +121,7 @@ def open_first_deck():
 
 
 def list_decks(out=None):
+    """Print connected Stream Deck devices and basic capabilities."""
     out = out or sys.stdout
     devices = DeviceManager().enumerate()
     if not devices:
@@ -137,6 +144,7 @@ def list_decks(out=None):
 
 
 def wait_after_update(wait_seconds=0, hold=False):
+    """Delay exit long enough to inspect a rendered deck state."""
     if hold:
         input("Press Enter to release the deck...")
         return
@@ -145,12 +153,14 @@ def wait_after_update(wait_seconds=0, hold=False):
 
 
 def paint_all_keys(deck, renderer, label, bg, fg):
+    """Fill every key on the deck with the same rendered image."""
     image = renderer.render_button(deck, label, bg=bg, fg=fg)
     for key in range(deck.key_count()):
         deck.set_key_image(key, image)
 
 
 def paint_key(deck, renderer, key, label, bg, fg):
+    """Render one deck key with the supplied label and colors."""
     if key < 0 or key >= deck.key_count():
         raise ValueError(f"Key must be between 0 and {deck.key_count() - 1}")
     image = renderer.render_button(deck, label, bg=bg, fg=fg)
@@ -158,6 +168,7 @@ def paint_key(deck, renderer, key, label, bg, fg):
 
 
 def paint_demo(deck, renderer):
+    """Paint the deck with a simple per-key color and index demo."""
     colors = [
         (180, 40, 40),
         (200, 120, 20),
@@ -171,25 +182,30 @@ def paint_demo(deck, renderer):
 
 
 def set_brightness(deck, brightness):
+    """Set deck brightness without additional validation."""
     deck.set_brightness(brightness)
 
 
 def cmd_iterm_info(_args):
+    """Show the current configured and discovered iTerm snapshot."""
     print_iterm_snapshot(collect_iterm_snapshot())
     return 0
 
 
 def cmd_iterm_frontmost(_args):
+    """Print the current frontmost iTerm session name."""
     host = HostIntegration()
     print(host.frontmost_session_name() or "-")
     return 0
 
 
 def cmd_deck_list(_args):
+    """List connected Stream Deck devices."""
     return list_decks()
 
 
 def cmd_deck_clear(args):
+    """Blank every key on the first available deck."""
     renderer = DeckRenderer()
     with open_first_deck() as deck:
         set_brightness(deck, args.brightness)
@@ -199,6 +215,7 @@ def cmd_deck_clear(args):
 
 
 def cmd_deck_fill(args):
+    """Paint every key on the first available deck with one style."""
     renderer = DeckRenderer()
     bg = parse_color(args.bg, COLOR_BG_DEFAULT)
     fg = parse_color(args.fg, COLOR_FG_DEFAULT)
@@ -210,6 +227,7 @@ def cmd_deck_fill(args):
 
 
 def cmd_deck_key(args):
+    """Paint a single key on the first available deck."""
     renderer = DeckRenderer()
     bg = parse_color(args.bg, COLOR_BG_DEFAULT)
     fg = parse_color(args.fg, COLOR_FG_DEFAULT)
@@ -221,6 +239,7 @@ def cmd_deck_key(args):
 
 
 def cmd_deck_demo(args):
+    """Render the indexed demo pattern on the first available deck."""
     renderer = DeckRenderer()
     with open_first_deck() as deck:
         set_brightness(deck, args.brightness)
@@ -230,6 +249,7 @@ def cmd_deck_demo(args):
 
 
 def build_parser():
+    """Build the CLI parser for `python -m clawdeck.devtools`."""
     parser = argparse.ArgumentParser(prog="python -m clawdeck.devtools")
     subparsers = parser.add_subparsers(dest="group", required=True)
 
@@ -272,6 +292,7 @@ def build_parser():
 
 
 def main(argv=None):
+    """Parse arguments and dispatch the selected devtools command."""
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

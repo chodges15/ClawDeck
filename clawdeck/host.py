@@ -1,3 +1,5 @@
+"""Host integration helpers for iTerm, Accessibility, and TTY writes."""
+
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,7 @@ from .layout import session_label_key
 
 
 def normalize_tty_name(tty_name):
+    """Normalize `/dev/...` TTY names to the bare device identifier."""
     if tty_name is None:
         return None
     tty_name = str(tty_name).strip()
@@ -21,6 +24,7 @@ def normalize_tty_name(tty_name):
 
 
 def session_pattern(config, session):
+    """Return the configured match pattern for a logical session row."""
     session_map = config.get("session_map", {})
     pattern = str(session_map.get(session, "")).strip()
     if pattern:
@@ -36,6 +40,7 @@ def session_pattern(config, session):
 
 
 def match_session_name(config, session_name):
+    """Map a raw iTerm session name back to a logical ClawDeck session."""
     if not session_name:
         return None
     lowered = session_name.lower()
@@ -47,6 +52,8 @@ def match_session_name(config, session_name):
 
 
 class HostIntegration:
+    """Perform macOS and iTerm boundary operations for the controller."""
+
     def check_accessibility(self):
         """Check if Accessibility permissions are granted for this terminal app."""
         result = subprocess.run(
@@ -183,6 +190,7 @@ end tell
             return None
 
     def build_tty_map(self, config):
+        """Resolve configured sessions into deck-slot TTY and CWD maps."""
         tty_map = {}
         cwd_map = {}
         sessions = self.get_iterm_sessions()
@@ -208,6 +216,7 @@ end tell
         return tty_map, cwd_map
 
     def frontmost_session_name(self):
+        """Return the name of the currently focused iTerm session."""
         script = r'''
 tell application "iTerm2"
     if not running then return ""
@@ -234,11 +243,13 @@ end tell
             return None
 
     def get_frontmost_slot(self, config):
+        """Resolve the frontmost iTerm session into a deck label key."""
         session_name = self.frontmost_session_name()
         session = match_session_name(config, session_name)
         return session_label_key(session) if session else None
 
     def activate_session(self, config, session):
+        """Focus the configured iTerm session for the given logical row."""
         pattern = session_pattern(config, session)
         if not pattern:
             return False
@@ -303,6 +314,7 @@ end tell
         return ok
 
     def approve_permission(self, tty_name):
+        """Write `y` to the TTY backing a permission prompt."""
         tty_path = f"/dev/{tty_name}"
         fd = None
         try:

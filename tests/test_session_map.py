@@ -1,3 +1,5 @@
+"""Tests for session-name matching and permission approval writes."""
+
 from unittest.mock import patch
 
 

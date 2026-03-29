@@ -65,6 +65,7 @@ def merge_hooks(existing_hooks, new_hooks):
 
 
 def main():
+    """Preview, confirm, and install the ClawDeck Claude hook set."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     deck_hook_path = os.path.join(script_dir, "deck-hook.sh")
 

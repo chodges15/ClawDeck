@@ -1,3 +1,5 @@
+"""Configuration loading, defaults, and update helpers for ClawDeck."""
+
 import json
 import os
 
@@ -28,10 +30,12 @@ CONFIG_FILE = os.path.join(PROJECT_ROOT, "config.json")
 
 
 def rgb_to_hex(rgb):
+    """Convert an RGB tuple into a CSS-style hex string."""
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
 def hex_to_rgb(value):
+    """Convert a hex color string into an RGB tuple."""
     value = value.lstrip("#")
     return tuple(int(value[index:index + 2], 16) for index in (0, 2, 4))
 
@@ -64,10 +68,14 @@ CONFIG_DEFAULTS = {
 
 
 class ConfigStore:
+    """Persist and normalize user configuration stored in `config.json`."""
+
     def __init__(self, path=CONFIG_FILE):
+        """Initialize the store with an optional config path override."""
         self.path = path
 
     def normalize(self, raw):
+        """Merge raw config data onto the default config structure."""
         config = dict(CONFIG_DEFAULTS)
         config["colors"] = dict(CONFIG_DEFAULTS["colors"])
         config["session_map"] = dict(CONFIG_DEFAULTS["session_map"])
@@ -92,6 +100,7 @@ class ConfigStore:
         return config
 
     def load(self):
+        """Load config from disk and fall back to defaults on parse errors."""
         try:
             with open(self.path) as handle:
                 saved = json.load(handle)
@@ -101,6 +110,7 @@ class ConfigStore:
         return self.normalize(saved)
 
     def save(self, config):
+        """Write config to disk atomically when possible."""
         try:
             tmp_path = self.path + ".tmp"
             with open(tmp_path, "w") as handle:
@@ -111,6 +121,7 @@ class ConfigStore:
             logger.error("Config save failed: %s", exc)
 
     def apply_update(self, config, updates, save=True):
+        """Merge an update payload into config and optionally persist it."""
         merged = dict(config)
         merged["colors"] = dict(config.get("colors", {}))
         merged["session_map"] = dict(config.get("session_map", {}))
@@ -135,6 +146,7 @@ class ConfigStore:
         return normalized
 
     def color(self, config, key, fallback):
+        """Return a configured RGB color or a fallback tuple."""
         colors = config.get("colors", {})
         value = colors.get(key)
         if value:

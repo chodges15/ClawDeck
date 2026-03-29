@@ -33,6 +33,7 @@ from .controller import DeckController
 
 
 def main(argv=None):
+    """Run the CLI entrypoint and honor the built-in help screen."""
     args = list(sys.argv[1:] if argv is None else argv)
     if "--help" in args or "-h" in args:
         print(__doc__)

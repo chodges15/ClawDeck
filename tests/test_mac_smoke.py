@@ -1,3 +1,5 @@
+"""Opt-in smoke tests for live macOS and Stream Deck integrations."""
+
 import os
 import pty
 import select

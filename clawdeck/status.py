@@ -1,3 +1,5 @@
+"""Status-file ingestion for Claude session state and tool prompt details."""
+
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -10,6 +12,8 @@ from .host import normalize_tty_name
 
 @dataclass
 class StatusSnapshot:
+    """One pass of derived slot status plus scroll-cache invalidation data."""
+
     slot_status: dict[int, str] = field(default_factory=dict)
     slot_tool_info: dict[int, dict] = field(default_factory=dict)
     clear_scroll_slots: set[int] = field(default_factory=set)
@@ -17,7 +21,10 @@ class StatusSnapshot:
 
 
 class StatusReader:
+    """Read and normalize per-session status files written by hooks."""
+
     def normalize_tool_info(self, raw):
+        """Normalize raw tool metadata into a compact common shape."""
         if raw in (None, "", {}):
             return None
 
@@ -63,6 +70,7 @@ class StatusReader:
         return {"tool_name": str(tool_name), "tool_input": tool_input}
 
     def read(self, slot_tty, config, formatter, scroll_text):
+        """Read status files and return the current per-slot snapshot."""
         status_dir = Path(STATUS_DIR)
         snapshot = StatusSnapshot()
         if not status_dir.exists():

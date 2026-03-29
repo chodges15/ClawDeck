@@ -153,6 +153,7 @@ class OverlayTick(NSObject):
     PyObjC selector conflicts with helper methods."""
 
     def init(self):
+        """Create overlay windows and initialize cached display state."""
         self = objc.super(OverlayTick, self).init()
         if self is None:
             return None
@@ -251,6 +252,7 @@ class OverlayTick(NSObject):
 # ═══════════════════════════════════════════════════════════════════════
 
 def main():
+    """Start the overlay app and poll the overlay IPC file until shutdown."""
     pool = NSAutoreleasePool.alloc().init()
 
     app = NSApplication.sharedApplication()
@@ -263,6 +265,7 @@ def main():
     )
 
     def shutdown(sig, frame):
+        """Terminate the accessory app in response to a signal."""
         app.terminate_(None)
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)

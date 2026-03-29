@@ -1,3 +1,5 @@
+"""Rendering helpers that turn controller state into Stream Deck images."""
+
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -27,11 +29,15 @@ from .layout import key_to_session, session_label_key
 
 
 class DeckRenderer:
+    """Render row-mode, nav-mode, and scrolling status button images."""
+
     def __init__(self, config_store=None):
+        """Initialize the renderer and load its font set."""
         self.config_store = config_store or ConfigStore()
         self._init_fonts()
 
     def _init_fonts(self):
+        """Load preferred fonts and fall back to Pillow defaults."""
         candidates = [
             "/System/Library/Fonts/SFCompact.ttf",
             "/System/Library/Fonts/Helvetica.ttc",
@@ -40,6 +46,7 @@ class DeckRenderer:
         ]
 
         def load(size):
+            """Load the first available candidate font at the requested size."""
             for path in candidates:
                 try:
                     return ImageFont.truetype(path, size)
@@ -53,6 +60,7 @@ class DeckRenderer:
         self.font_xs = load(9)
 
     def pick_font(self, label):
+        """Choose a label font size based on label length."""
         if len(label) <= 2:
             return self.font_lg
         if len(label) <= 4:
@@ -60,6 +68,7 @@ class DeckRenderer:
         return self.font_sm
 
     def button_dimensions(self, deck):
+        """Return the rendered button size for a deck."""
         if deck:
             try:
                 image = PILHelper.create_image(deck, background=COLOR_BG_DEFAULT)
@@ -78,6 +87,7 @@ class DeckRenderer:
         border_width=8,
         subtitle=None,
     ):
+        """Render a single labeled deck button with optional subtitle and border."""
         image = PILHelper.create_image(deck, background=bg)
         draw = ImageDraw.Draw(image)
         width, height = image.size
@@ -123,6 +133,7 @@ class DeckRenderer:
         return PILHelper.to_native_format(deck, image)
 
     def first_display_value(self, value):
+        """Extract the first printable leaf value from nested tool input."""
         if value is None:
             return None
         if isinstance(value, str):
@@ -145,6 +156,7 @@ class DeckRenderer:
         return str(value)
 
     def format_tool_command(self, tool_info):
+        """Build a short permission-prompt summary from tool metadata."""
         if not tool_info:
             return "Permission required"
 
@@ -171,6 +183,7 @@ class DeckRenderer:
         return tool_name
 
     def format_cwd(self, config, path):
+        """Format a working-directory path for button subtitle display."""
         if not path:
             return None
 
@@ -189,6 +202,7 @@ class DeckRenderer:
         return Path(path).name
 
     def render_scroll_strip(self, deck, config, text):
+        """Render the repeating strip used for permission scrolling text."""
         button_w, button_h = self.button_dimensions(deck)
         viewport_w = button_w * (KEYS_PER_ROW - 1)
         gap = max(button_w // 2, 24)
@@ -212,6 +226,7 @@ class DeckRenderer:
         return strip
 
     def ensure_scroll_strip(self, deck, state, config, label_key):
+        """Cache and return the scrolling strip for a permission row."""
         text = self.format_tool_command(state.slot_tool_info.get(label_key))
         if label_key not in state.scroll_images or state.scroll_text.get(label_key) != text:
             state.scroll_images[label_key] = self.render_scroll_strip(deck, config, text)
@@ -220,6 +235,7 @@ class DeckRenderer:
         return state.scroll_images[label_key]
 
     def render_scroll_button(self, deck, strip, offset, button_idx):
+        """Crop one visible button-sized slice from a scrolling strip."""
         button_w, button_h = self.button_dimensions(deck)
         start = (offset + button_idx * button_w) % strip.width
 
@@ -235,6 +251,7 @@ class DeckRenderer:
         return PILHelper.to_native_format(deck, crop)
 
     def advance_scroll_offset(self, state, config, label_key, strip_width):
+        """Advance one permission-row marquee offset based on scroll speed."""
         speed = max(int(config.get("scroll_speed", DEFAULT_SCROLL_SPEED)), 0)
         if strip_width <= 0:
             state.scroll_offsets[label_key] = 0
@@ -244,6 +261,7 @@ class DeckRenderer:
         return next_offset
 
     def advance_scroll_offsets(self, deck, state, config):
+        """Advance marquee offsets for every permission row."""
         changed = False
         for label_key, status in state.slot_status.items():
             if status != "permission":
@@ -256,6 +274,7 @@ class DeckRenderer:
         return changed
 
     def get_slot_style(self, config, state, slot):
+        """Resolve the label-button palette for a session slot."""
         if isinstance(slot, str):
             label_key = session_label_key(slot)
         else:
@@ -287,6 +306,7 @@ class DeckRenderer:
         return COLOR_BG_DEFAULT, COLOR_FG_DEFAULT, None
 
     def draw_row_mode(self, deck, state, config):
+        """Render the full deck in row mode."""
         for session in SESSIONS:
             label_key = session_label_key(session)
             bg, fg, border = self.get_slot_style(config, state, label_key)
@@ -333,6 +353,7 @@ class DeckRenderer:
                 )
 
     def get_nav_style(self, config, key):
+        """Resolve nav-button styling with user color overrides applied."""
         style = NAV_BUTTON_STYLES.get(key)
         if style is None:
             return None
@@ -348,6 +369,7 @@ class DeckRenderer:
         return {"label": style["label"], "bg": bg, "fg": style["fg"]}
 
     def draw_nav_mode(self, deck, state, config):
+        """Render the full deck in navigation mode."""
         for key in range(TOTAL_KEYS):
             border = (
                 self.config_store.color(config, "active", COLOR_BG_ACTIVE)
@@ -373,6 +395,7 @@ class DeckRenderer:
                 )
 
     def update_all_buttons(self, deck, state, config):
+        """Render the deck in whichever mode is currently active."""
         if state.mode == MODE_NAV:
             self.draw_nav_mode(deck, state, config)
         else:

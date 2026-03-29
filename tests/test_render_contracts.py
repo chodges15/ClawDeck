@@ -1,3 +1,5 @@
+"""Tests for rendering contracts, marquee behavior, and mode layouts."""
+
 from unittest.mock import MagicMock, patch
 
 from PIL import Image

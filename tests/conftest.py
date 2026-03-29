@@ -25,6 +25,8 @@ except ImportError:  # pragma: no cover - repo env should have Pillow
 
 
 class StubPILHelper:
+    """Minimal PILHelper stand-in used by tests."""
+
     @staticmethod
     def create_image(deck, background=(0, 0, 0)):
         size = getattr(deck, "button_size", (72, 72)) if deck else (72, 72)
@@ -36,6 +38,7 @@ class StubPILHelper:
 
 
 def _make_quartz_module():
+    """Build a deterministic Quartz stub module for tests."""
     module = ModuleType("Quartz")
     module.kCGEventFlagsChanged = 12
     module.kCGEventKeyDown = 10
@@ -72,6 +75,7 @@ def _make_quartz_module():
 
 
 def _make_corefoundation_module():
+    """Build a deterministic CoreFoundation stub module for tests."""
     module = ModuleType("CoreFoundation")
     module.kCFRunLoopCommonModes = "kCFRunLoopCommonModes"
     module.CFMachPortCreateRunLoopSource = MagicMock(return_value="source")
@@ -84,6 +88,7 @@ def _make_corefoundation_module():
 
 
 def _install_stub_modules():
+    """Install test doubles before importing modules that expect macOS deps."""
     quartz = _make_quartz_module()
     core_foundation = _make_corefoundation_module()
     streamdeck = ModuleType("StreamDeck")
@@ -134,7 +139,10 @@ import clawdeck.status as status_module  # noqa: E402
 
 
 class FakeDeck:
+    """In-memory Stream Deck test double that captures rendered output."""
+
     def __init__(self, key_count=TOTAL_KEYS, button_size=(72, 72), deck_name="Fake Deck"):
+        """Initialize a fake deck with configurable geometry and metadata."""
         self._key_count = key_count
         self.button_size = button_size
         self._deck_name = deck_name
@@ -171,6 +179,7 @@ class FakeDeck:
 
 
 def pytest_configure(config):
+    """Register custom markers used by the test suite."""
     config.addinivalue_line(
         "markers",
         "mac_integration: opt-in smoke tests for live macOS integrations and hardware",
@@ -178,6 +187,7 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
+    """Skip macOS smoke tests on non-Darwin platforms."""
     if sys.platform == "darwin":
         return
 
@@ -189,6 +199,7 @@ def pytest_collection_modifyitems(config, items):
 
 @pytest.fixture
 def controller():
+    """Provide a controller with config and font loading stubbed for tests."""
     default_font = ImageFont.load_default() if hasattr(ImageFont, "load_default") else None
     with patch("clawdeck.controller.ConfigStore.load", return_value=copy.deepcopy(CONFIG_DEFAULTS)):
         with patch("clawdeck.render.DeckRenderer._init_fonts"):
@@ -203,16 +214,19 @@ def controller():
 
 @pytest.fixture
 def default_config():
+    """Return a deep-copied default config for test mutation."""
     return copy.deepcopy(CONFIG_DEFAULTS)
 
 
 @pytest.fixture
 def fake_deck():
+    """Return a fresh fake Stream Deck device."""
     return FakeDeck()
 
 
 @pytest.fixture
 def subprocess_result():
+    """Build simple subprocess result objects for boundary tests."""
     def make(stdout="", stderr="", returncode=0):
         return SimpleNamespace(stdout=stdout, stderr=stderr, returncode=returncode)
 

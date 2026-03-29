@@ -1,3 +1,5 @@
+"""Tests for status-file parsing, inference, and scroll invalidation."""
+
 import json
 
 import clawdeck.status as status_module

@@ -1,3 +1,5 @@
+"""Public package exports for ClawDeck."""
+
 from .controller import DeckController
 from .version import __version__
 

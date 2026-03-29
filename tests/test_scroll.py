@@ -1,3 +1,5 @@
+"""Tests for permission marquee formatting and scroll advancement."""
+
 def test_format_tool_command_for_bash(controller):
     tool_info = {"tool_name": "Bash", "tool_input": {"command": "npm test"}}
     assert controller._format_tool_command(tool_info) == "Bash: npm test"

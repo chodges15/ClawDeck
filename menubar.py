@@ -26,7 +26,10 @@ _app_instance = None
 
 
 class ClawDeckApp(rumps.App):
+    """Menu bar wrapper that starts and stops the deck controller."""
+
     def __init__(self):
+        """Create menu items and start the shared settings server."""
         super().__init__("ClawDeck", icon=None, title="\U0001f99e", quit_button=None)
         self.controller = None
         self._controller_thread = None
@@ -46,6 +49,7 @@ class ClawDeckApp(rumps.App):
         self._http_port = self.settings_server.start()
 
     def toggle_controller(self, sender):
+        """Toggle the controller runtime from the menu bar."""
         if self.controller and self.controller.running:
             self._stop_controller()
             sender.title = "Start"
@@ -55,7 +59,9 @@ class ClawDeckApp(rumps.App):
             sender.title = "Stop"
 
     def _start_controller(self):
+        """Launch the controller on a background thread."""
         def run():
+            """Create and start the controller inside the worker thread."""
             try:
                 self.controller = DeckController()
                 self.controller.startup(start_settings_server=False)
@@ -72,12 +78,14 @@ class ClawDeckApp(rumps.App):
         self._controller_thread.start()
 
     def _stop_controller(self):
+        """Stop the controller if it is running."""
         if self.controller:
             self.controller.shutdown()
             self.controller = None
         self._update_menu_state(False)
 
     def _update_menu_state(self, running):
+        """Reflect controller state in the menu title and app icon."""
         try:
             item = self.menu["Start"]
         except KeyError:
@@ -89,6 +97,7 @@ class ClawDeckApp(rumps.App):
         self.title = "\U0001f99e\u2713" if running else "\U0001f99e"
 
     def rescan_sessions(self, _):
+        """Refresh iTerm session mappings for the running controller."""
         if self.controller and self.controller.running:
             self.controller.refresh_tty_map()
             self.controller.update_all_buttons()
@@ -96,10 +105,12 @@ class ClawDeckApp(rumps.App):
             rumps.notification("ClawDeck", "", "Start the controller first.")
 
     def open_settings(self, _):
+        """Open the local settings page in the default browser."""
         if self._http_port:
             webbrowser.open(f"http://127.0.0.1:{self._http_port}/")
 
     def install_hooks(self, _):
+        """Run the hook installer and surface the result as a notification."""
         result = subprocess.run(
             [sys.executable, os.path.join(PROJECT_ROOT, "install_hooks.py")],
             input="y\n",
@@ -121,6 +132,7 @@ class ClawDeckApp(rumps.App):
             )
 
     def quit_app(self, _):
+        """Shut down all services and exit the menu bar app."""
         self._stop_controller()
         self.settings_server.stop()
         rumps.quit_application()

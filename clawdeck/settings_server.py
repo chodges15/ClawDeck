@@ -1,3 +1,5 @@
+"""Embedded HTTP server for the local settings UI and hook installer."""
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import subprocess
@@ -11,24 +13,33 @@ from .constants import BRIGHTNESS, PROJECT_ROOT, SETTINGS_PORT_END, SETTINGS_POR
 
 
 class SettingsServer:
+    """Manage the lightweight local HTTP server used by the settings page."""
+
     def __init__(self, controller_provider, config_store=None):
+        """Create a settings server bound to a lazy controller provider."""
         self._controller_provider = controller_provider
         self.config_store = config_store or ConfigStore()
         self._server = None
         self.port = None
 
     def _controller(self):
+        """Return the current controller instance, if any."""
         return self._controller_provider()
 
     def _make_handler(self):
+        """Create a request handler class bound to this server instance."""
         server_ref = self
         settings_html_path = PROJECT_ROOT / "settings.html"
 
         class SettingsHandler(BaseHTTPRequestHandler):
+            """Serve settings HTML plus a small JSON API."""
+
             def log_message(self, format, *args):
+                """Suppress default request logging for the embedded server."""
                 pass
 
             def do_GET(self):
+                """Serve static settings HTML and read-only API endpoints."""
                 path = urlparse(self.path).path
                 controller = server_ref._controller()
                 if path in ("/", "/settings"):
@@ -56,6 +67,7 @@ class SettingsServer:
                     self.send_error(404)
 
             def do_POST(self):
+                """Handle settings updates and hook-install requests."""
                 path = urlparse(self.path).path
                 content_len = int(self.headers.get("Content-Length", 0))
                 body = self.rfile.read(content_len) if content_len else b""
@@ -112,6 +124,7 @@ class SettingsServer:
                 self.send_error(404)
 
             def _json_response(self, data, code=200):
+                """Write a JSON response body with the given HTTP status code."""
                 body = json.dumps(data).encode()
                 self.send_response(code)
                 self.send_header("Content-Type", "application/json")
@@ -122,6 +135,7 @@ class SettingsServer:
         return SettingsHandler
 
     def start(self):
+        """Start the server on the first available configured localhost port."""
         handler_cls = self._make_handler()
         for port in range(SETTINGS_PORT_START, SETTINGS_PORT_END):
             try:
@@ -135,6 +149,7 @@ class SettingsServer:
         return None
 
     def stop(self):
+        """Stop the server and release the bound port."""
         if not self._server:
             return
         self._server.shutdown()

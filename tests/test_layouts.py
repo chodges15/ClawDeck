@@ -1,3 +1,5 @@
+"""Tests for mapping deck key indexes onto the row layout model."""
+
 from clawdeck.constants import KEYS_PER_ROW, SESSIONS, TOTAL_KEYS
 
 

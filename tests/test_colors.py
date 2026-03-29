@@ -1,3 +1,5 @@
+"""Tests for color conversion helpers and config-based color lookup."""
+
 import pytest
 from clawdeck.config import hex_to_rgb as _hex_to_rgb, rgb_to_hex as _rgb_to_hex
 

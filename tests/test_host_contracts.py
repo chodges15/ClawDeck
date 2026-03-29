@@ -1,3 +1,5 @@
+"""Tests for macOS host-boundary subprocess and device contracts."""
+
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call, patch
@@ -311,6 +313,8 @@ def test_run_initializes_first_working_device_and_shuts_down_cleanly(controller)
     threads = []
 
     class FakeThread:
+        """Thread double that records startup without spawning work."""
+
         def __init__(self, target, daemon):
             self.target = target
             self.daemon = daemon

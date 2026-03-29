@@ -1,3 +1,5 @@
+"""Shared constants for deck layout, colors, timing, and key mappings."""
+
 from pathlib import Path
 
 

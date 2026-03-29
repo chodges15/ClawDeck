@@ -1,3 +1,5 @@
+"""Tests for the embedded settings HTTP server and update flow."""
+
 import io
 import json
 from types import MethodType, SimpleNamespace
@@ -5,6 +7,8 @@ from unittest.mock import patch
 
 
 class FakeHTTPServer:
+    """Tiny HTTPServer stand-in used to test port binding logic."""
+
     instances = []
 
     def __init__(self, address, handler_cls):
@@ -18,6 +22,8 @@ class FakeHTTPServer:
 
 
 class FakeThread:
+    """Thread stand-in that records the target without running it."""
+
     instances = []
 
     def __init__(self, target, daemon):
@@ -31,6 +37,7 @@ class FakeThread:
 
 
 def make_handler(handler_cls, path, body=b"", headers=None):
+    """Instantiate a handler with in-memory request and response streams."""
     handler = handler_cls.__new__(handler_cls)
     handler.path = path
     handler.headers = headers or {}
@@ -41,15 +48,19 @@ def make_handler(handler_cls, path, body=b"", headers=None):
     handler.error_code = None
 
     def send_response(self, code):
+        """Record the response status code on the fake handler."""
         self.status = code
 
     def send_header(self, key, value):
+        """Record a header emitted by the handler."""
         self.sent_headers.append((key, value))
 
     def end_headers(self):
+        """Match the BaseHTTPRequestHandler interface without side effects."""
         return None
 
     def send_error(self, code):
+        """Record an HTTP error code on the fake handler."""
         self.error_code = code
 
     handler.send_response = MethodType(send_response, handler)
@@ -60,6 +71,7 @@ def make_handler(handler_cls, path, body=b"", headers=None):
 
 
 def start_fake_server(controller, monkeypatch, tmp_path):
+    """Create a settings server instance bound to temporary UI assets."""
     FakeHTTPServer.instances.clear()
     FakeThread.instances.clear()
     monkeypatch.setattr("clawdeck.settings_server.HTTPServer", FakeHTTPServer)
@@ -209,6 +221,8 @@ def test_start_settings_server_skips_busy_ports(controller, monkeypatch, tmp_pat
     calls = {"count": 0}
 
     class BusyThenOK(FakeHTTPServer):
+        """HTTPServer double that fails once before succeeding."""
+
         def __init__(self, address, handler_cls):
             calls["count"] += 1
             if calls["count"] == 1:

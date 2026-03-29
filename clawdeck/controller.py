@@ -1,3 +1,5 @@
+"""Top-level controller that coordinates host, input, status, and rendering."""
+
 import logging
 import os
 from pathlib import Path
@@ -39,7 +41,10 @@ from .version import __version__
 
 
 class DeckController:
+    """Drive the Stream Deck UI and keep it in sync with iTerm and Claude state."""
+
     def __init__(self):
+        """Initialize collaborators, state, and lazy runtime resources."""
         self.config_store = ConfigStore()
         self.config = self.config_store.load()
         self.state = ControllerState()
@@ -192,13 +197,16 @@ class DeckController:
         self.state.last_blink_toggle = value
 
     def apply_config_update(self, updates, save=True):
+        """Apply a config update through the shared config store."""
         self.config = self.config_store.apply_update(self.config, updates, save=save)
 
     def refresh_tty_map(self):
+        """Rebuild cached session-to-TTY and TTY-to-CWD mappings."""
         self._build_tty_map()
         return self.state.slot_tty, self.state.slot_cwd
 
     def update_all_buttons(self):
+        """Redraw the deck if a hardware device is currently open."""
         if self.deck:
             self._update_all_buttons()
 
@@ -596,6 +604,7 @@ class DeckController:
             time.sleep(self.config.get("poll_interval", POLL_INTERVAL))
 
     def _handle_command(self, raw):
+        """Handle a single interactive command entered on stdin."""
         parts = raw.split(None, 1)
         if not parts:
             return
@@ -697,6 +706,7 @@ class DeckController:
         print(f"  Unknown command: {cmd} (type 'help' for commands)")
 
     def _clear_status_dir(self):
+        """Remove stale status files left behind by earlier runs."""
         os.makedirs(STATUS_DIR, exist_ok=True)
         for file_path in Path(STATUS_DIR).iterdir():
             try:
@@ -706,6 +716,7 @@ class DeckController:
                 subprocess.run(["rm", "-f", str(file_path)], capture_output=True)
 
     def _open_deck(self):
+        """Open the first accessible Stream Deck interface."""
         devices = DeviceManager().enumerate()
         if not devices:
             raise RuntimeError(
@@ -729,10 +740,12 @@ class DeckController:
         )
 
     def start_settings_server(self):
+        """Start the embedded settings server and return its bound port."""
         self._settings_port = self.settings_server.start()
         return self._settings_port
 
     def startup(self, start_settings_server=True):
+        """Initialize hardware, render the initial UI, and launch the poll loop."""
         self._check_accessibility()
         self._open_deck()
 
@@ -763,6 +776,7 @@ class DeckController:
         return self._settings_port
 
     def shutdown(self):
+        """Stop background work and release hardware and server resources."""
         self.running = False
         if self.deck:
             self.deck.reset()
@@ -772,6 +786,7 @@ class DeckController:
         self._settings_port = None
 
     def run(self):
+        """Run the interactive controller until the user exits."""
         try:
             settings_port = self.startup(start_settings_server=True)
         except RuntimeError as exc:

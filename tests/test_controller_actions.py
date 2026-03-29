@@ -1,3 +1,5 @@
+"""Tests for controller key handling, commands, and poll-loop behavior."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest

@@ -1,3 +1,5 @@
+"""Mutable controller state shared between rendering and polling."""
+
 from dataclasses import dataclass, field
 import time
 
@@ -6,6 +8,8 @@ from .constants import MODE_ROW
 
 @dataclass
 class ControllerState:
+    """Track transient controller state that should not live in config."""
+
     mode: str = MODE_ROW
     active_slot: int | None = None
     slot_tty: dict[int, str] = field(default_factory=dict)

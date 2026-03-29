@@ -1,3 +1,5 @@
+"""Keyboard event helpers for MIC shortcuts and nav key dispatch."""
+
 import subprocess
 import time
 
@@ -48,7 +50,10 @@ def format_keystroke(key_code, flags):
 
 
 class InputController:
+    """Send and capture key events through Quartz and AppleScript bridges."""
+
     def trigger_mic(self, config):
+        """Trigger the configured MIC action."""
         mic_cmd = config.get("mic_command", "fn")
 
         if mic_cmd == "fn":
@@ -85,9 +90,11 @@ class InputController:
                 logger.warning("MIC command failed", exc_info=True)
 
     def learn_keystroke(self, config, config_store):
+        """Capture the next key combo and save it as the MIC binding."""
         captured = {}
 
         def callback(proxy, event_type, event, refcon):
+            """Capture the first relevant key event and stop the run loop."""
             if event_type == kCGEventKeyDown:
                 captured["key_code"] = CGEventGetIntegerValueField(
                     event, kCGKeyboardEventKeycode
@@ -149,6 +156,7 @@ class InputController:
         print(f"  mic → {label}")
 
     def send_key(self, key_name):
+        """Send a named key press to the frontmost app via System Events."""
         if key_name == "Return":
             script = 'tell application "System Events" to key code 36'
         elif key_name in ARROW_KEY_CODES:

@@ -1,3 +1,5 @@
+"""Tests for the `clawdeck.devtools` helper commands."""
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -13,6 +15,8 @@ from clawdeck.devtools import (
 
 def test_collect_iterm_snapshot_includes_row_matches_and_raw_sessions(default_config):
     class FakeHost:
+        """Host double that returns predictable iTerm session data."""
+
         def get_iterm_sessions(self):
             return [
                 {"name": "Claude T1", "tty": "ttys001"},

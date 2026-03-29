@@ -1,3 +1,5 @@
+"""Tests for per-slot and navigation button style resolution."""
+
 from clawdeck.constants import (
     COLOR_BG_DEFAULT,
     COLOR_BG_IDLE,
